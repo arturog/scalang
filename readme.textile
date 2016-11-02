@@ -59,7 +59,7 @@ Scalang shares Erlang's concept of a process, a lightweight actor that is capabl
 <code>
   class MyProcess(ctx : ProcessContext) extends Process(ctx) {
     override def onMessage(msg : Any) {
-      log.info("received %s", msg)
+      log.info("received {}", msg)
     }
   }
 
@@ -86,7 +86,7 @@ The following shows a simple echo server and client that demonstrate message sen
       case (pid : Pid, request : Any) =>
         pid ! request
       case m =>
-        log.error("sorry I don't understand %s.", m)
+        log.error("sorry I don't understand {}.", m)
     }
   }
 
@@ -124,11 +124,11 @@ Processes that must implement custom behavior may override the trapExit method.
 <code>
   class ExitHandler(ctx : ProcessContext) extends Process(ctx) {
     override def onMessage(msg : Any) = msg match {
-      case _ => log.info("derp %s", msg)
+      case _ => log.info("derp {}", msg)
     }
 
     override def trapExit(from : Pid, msg : Any) {
-      log.warning("got exit notification from %s reason %s", from, msg)
+      log.warning("got exit notification from {} reason {}", from, msg)
     }
   }
 </code>
@@ -223,11 +223,11 @@ Most modern Erlang applications are built using the OTP framework, and in partic
     }   
 
     override def handleCast(request : Any) {
-      log.info("Can't echo a cast. %s", request)
+      log.info("Can't echo a cast. {}", request)
     }   
 
     override def handleInfo(request : Any) {
-      log.info("A wild message appeared. %s, request")
+      log.info("A wild message appeared. {}, request")
     }   
   }
 

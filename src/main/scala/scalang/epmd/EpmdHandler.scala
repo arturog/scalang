@@ -20,7 +20,7 @@ import atomic._
 import org.jboss.{netty => netty}
 import netty.channel._
 import java.util.concurrent.TimeUnit
-import com.boundary.logula.Logging
+import scalang.Logging
 
 class EpmdHandler extends SimpleChannelUpstreamHandler with Logging {
   val queue = new ConcurrentLinkedQueue[EpmdResponse]
@@ -54,7 +54,7 @@ class EpmdHandler extends SimpleChannelUpstreamHandler with Logging {
       rsp.set(response)
     }
     else {
-      log.warn("Unable to find EpmdResponse for: %s", response)
+      log.warn("Unable to find EpmdResponse for: {}", response)
     }
   }
 

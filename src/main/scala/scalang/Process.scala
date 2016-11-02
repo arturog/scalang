@@ -17,7 +17,7 @@ package scalang
 
 import scalang.node.ProcessLike
 import scala._
-import com.boundary.logula.Logging
+
 
 abstract class Process(ctx : ProcessContext) extends ProcessLike with Logging {
   val self = ctx.pid 

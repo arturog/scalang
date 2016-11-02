@@ -27,14 +27,13 @@ import java.util.{List => JList}
 import scalang.util.ByteArray
 import scalang.util.CamelToUnder._
 import com.yammer.metrics.scala._
-import com.boundary.logula.Logging
 
 class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) extends OneToOneEncoder with Logging with Instrumented {
 
   val encodeTimer = metrics.timer("encoding", peer.name)
 
   override def encode(ctx : ChannelHandlerContext, channel : Channel, obj : Any) : Object = {
-    log.debug("sending msg %s", obj)
+    log.debug("sending msg {}", obj)
     encodeTimer.time {
       val buffer = ChannelBuffers.dynamicBuffer(512)
       //write distribution header

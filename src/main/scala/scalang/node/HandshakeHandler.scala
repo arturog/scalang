@@ -23,7 +23,7 @@ import java.util.ArrayDeque
 import scala.math._
 import scala.collection.JavaConversions._
 import java.security.{SecureRandom,MessageDigest}
-import com.boundary.logula.Logging
+
 
 abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit) extends SimpleChannelHandler with StateMachine with Logging {
   override val start = 'disconnected
@@ -64,7 +64,7 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
 
   override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
     this.ctx = ctx
-    log.error(e.getCause, "Exception caught during erlang handshake: ")
+    log.error("Exception caught during erlang handshake: ", e.getCause)
     handshakeFailed
   }
 
