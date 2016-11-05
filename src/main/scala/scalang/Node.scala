@@ -744,7 +744,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
       getOrConnectAndSend(peer, RegSend(from, regName, msg))
     } catch {
       case e : Exception =>
-        log.warn(s"trouble sending message to $peer", e)
+        //Passing this exception to log.warn makes the test-runner hang, thus we're 
+        //omitting it here. 
+        log.warn(s"trouble sending message to $peer")
     }
   }
 
