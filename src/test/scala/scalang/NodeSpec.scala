@@ -6,28 +6,29 @@ import java.lang.{Process => JProc}
 import java.io._
 import scala.collection.JavaConversions._
 
-class NodeSpec extends SpecificationWithJUnit {
-  "Node" should {
-    var epmd : JProc = null
+class NodeSpec extends SpecificationWithJUnit with InEpmd {
+  sequential 
+
+  trait Context extends BeforeAfter {
+    val cookie = "test"
+
     var erl : JProc = null
     var node : ErlangNode = null
-    doBefore {
-      epmd = EpmdCmd()
+    def before() {     
     }
 
-    doAfter {
-      epmd.destroy
-      epmd.waitFor
-      if (node != null) { node.shutdown }
+    def after() {
       if (erl != null) {
         erl.destroy
         erl.waitFor
       }
+      if (node != null) { node.shutdown }
     }
-
-    val cookie = "test"
-
-    "get connections from a remote node" in {
+  }
+  
+  "Node" should {    
+  
+    "get connections from a remote node" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       erl = ErlangVM("tmp@localhost", cookie, Some("io:format(\"~p~n\", [net_kernel:connect_node('test@localhost')])."))
       val read = new BufferedReader(new InputStreamReader(erl.getInputStream))
@@ -35,7 +36,7 @@ class NodeSpec extends SpecificationWithJUnit {
       node.channels.keySet.toSet must contain(Symbol("tmp@localhost"))
     }
 
-    "connect to a remote node" in {
+    "connect to a remote node" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       erl = Escript("receive_connection.escript")
       ReadLine(erl) //ready
@@ -46,7 +47,7 @@ class NodeSpec extends SpecificationWithJUnit {
       node.channels.keySet.toSet must contain(Symbol("test@localhost"))
     }
 
-    "accept pings" in {
+    "accept pings" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       erl = ErlangVM("tmp@localhost", cookie, Some("io:format(\"~p~n\", [net_adm:ping('scala@localhost')])."))
       val result = ReadLine(erl)
@@ -54,19 +55,19 @@ class NodeSpec extends SpecificationWithJUnit {
       node.channels.keySet.toSet must contain(Symbol("tmp@localhost"))
     }
 
-    "send pings" in {
+    "send pings" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       erl = Escript("receive_connection.escript")
       ReadLine(erl)
       node.ping(Symbol("test@localhost"), 1000) must be_==(true)
     }
 
-    "invalid pings should fail" in {
+    "invalid pings should fail" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       node.ping(Symbol("taco_truck@localhost"), 1000) must be_==(false)
     }
 
-    "send local regname" in {
+    "send local regname" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       val echoPid = node.spawn[EchoProcess]('echo)
       val mbox = node.spawnMbox
@@ -74,7 +75,7 @@ class NodeSpec extends SpecificationWithJUnit {
       mbox.receive must be_==('blah)
     }
 
-    "send remote regname" in {
+    "send remote regname" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       erl = Escript("echo.escript")
       ReadLine(erl)
@@ -83,7 +84,7 @@ class NodeSpec extends SpecificationWithJUnit {
       mbox.receive must be_==('blah)
     }
 
-    "receive remove regname" in {
+    "receive remove regname" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       erl = Escript("echo.escript")
       ReadLine(erl)
@@ -92,7 +93,7 @@ class NodeSpec extends SpecificationWithJUnit {
       mbox.receive must be_==('blah)
     }
 
-    "remove processes on exit" in {
+    "remove processes on exit" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       val pid = node.spawn[FailProcess]
       node.processes.get(pid) must beLike { case f : ProcessLauncher[_] => ok }
@@ -101,7 +102,7 @@ class NodeSpec extends SpecificationWithJUnit {
       Option(node.processes.get(pid)) must beNone
     }
 
-    "deliver local breakages" in {
+    "deliver local breakages" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       val linkProc = node.spawn[LinkProcess]
       val failProc = node.spawn[FailProcess]
@@ -115,7 +116,7 @@ class NodeSpec extends SpecificationWithJUnit {
       node.isAlive(linkProc) must be_==(false)
     }
 
-    "deliver remote breakages" in {
+    "deliver remote breakages" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       val mbox = node.spawnMbox('mbox)
       val scala = node.spawnMbox('scala)
@@ -126,7 +127,7 @@ class NodeSpec extends SpecificationWithJUnit {
       scala.receive must be_==('blah)
     }
 
-    "deliver local breakages" in {
+    "deliver local breakages" in new Context {
       node = Node(Symbol("scala@localhost"), cookie)
       val mbox = node.spawnMbox('mbox)
       erl = Escript("link_delivery.escript")
@@ -137,7 +138,7 @@ class NodeSpec extends SpecificationWithJUnit {
       node.isAlive(mbox.self) must be_==(false)
     }
 
-    "deliver breaks on channel disconnect" in {
+    "deliver breaks on channel disconnect" in new Context {
        println("discon")
        node = Node(Symbol("scala@localhost"), cookie)
        val mbox = node.spawnMbox('mbox)
@@ -150,7 +151,7 @@ class NodeSpec extends SpecificationWithJUnit {
        node.isAlive(mbox.self) must be_==(false)
      }
 
-     "deliver local monitor exits" in {
+     "deliver local monitor exits" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val monitorProc = node.spawn[MonitorProcess]
        val failProc = node.spawn[FailProcess]
@@ -165,7 +166,7 @@ class NodeSpec extends SpecificationWithJUnit {
        node.isAlive(monitorProc) must be_==(true)
      }
 
-     "deliver remote monitor exits" in {
+     "deliver remote monitor exits" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val mbox = node.spawnMbox('mbox)
        val scala = node.spawnMbox('scala)
@@ -181,7 +182,7 @@ class NodeSpec extends SpecificationWithJUnit {
        scala.receive must be_==(('down, 'blah))
      }
 
-     "don't deliver remote monitor exit after demonitor" in {
+     "don't deliver remote monitor exit after demonitor" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val mbox = node.spawnMbox('mbox)
        val scala = node.spawnMbox('scala)
@@ -201,7 +202,7 @@ class NodeSpec extends SpecificationWithJUnit {
        scala.receive(100) must be_==(None)
      }
 
-     "receive remote monitor exits" in {
+     "receive remote monitor exits" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val monitorProc = node.spawn[MonitorProcess]
        val mbox = node.spawnMbox('mbox)
@@ -218,7 +219,7 @@ class NodeSpec extends SpecificationWithJUnit {
        node.isAlive(monitorProc) must be_==(true)
    }
 
-     "deliver local monitor exit for unregistered process" in {
+     "deliver local monitor exit for unregistered process" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val mbox = node.spawnMbox
        val ref = mbox.monitor('foo)
@@ -226,7 +227,7 @@ class NodeSpec extends SpecificationWithJUnit {
        mbox.receive must be_==('DOWN, ref, 'process, 'foo, 'noproc)
      }
 
-     "deliver remote monitor exit for unregistered process" in {
+     "deliver remote monitor exit for unregistered process" in new Context {
        node = Node(Symbol("scala@localhost"), cookie)
        val mbox = node.spawnMbox('mbox)
        val scala = node.spawnMbox('scala)

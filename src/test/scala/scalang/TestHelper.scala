@@ -5,6 +5,7 @@ import java.lang.{Process => SysProcess}
 import java.io._
 import scala.collection.JavaConversions._
 import scala.collection.mutable.StringBuilder
+import org.specs2.specification.BeforeAfterAll
 
 object ErlangVM {
   def apply(name : String, cookie : String, eval : Option[String]) : SysProcess = {
@@ -31,6 +32,19 @@ object EpmdCmd {
   def apply() : SysProcess = {
     val builder = new ProcessBuilder("epmd")
     builder.start
+  }
+}
+
+trait InEpmd extends BeforeAfterAll {
+  var epmd : SysProcess = null  
+   
+  def beforeAll() {
+    epmd = EpmdCmd()
+  }
+  
+  def afterAll() {
+    epmd.destroy
+    epmd.waitFor
   }
 }
 

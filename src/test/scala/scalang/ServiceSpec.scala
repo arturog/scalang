@@ -1,31 +1,28 @@
 package scalang
 
-import org.specs._
-import java.lang.{Process => JProc}
+import org.specs2.mutable._
 
-class ServiceSpec extends SpecificationWithJUnit {
-  "Service" should {
+class ServiceSpec extends SpecificationWithJUnit with InEpmd {
+  sequential
+  
+  trait Context extends After {
     val cookie = "test"
-    var epmd : JProc = null
     var node : ErlangNode = null
-    doBefore {
-      epmd = EpmdCmd()
-    }
 
-    doAfter {
-      epmd.destroy
-      epmd.waitFor
+    def after() {
       node.shutdown
     }
-
-    "deliver casts" in {
+  }
+  
+  "Service" should {
+    "deliver casts" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[CastNoopService,NoArgs](NoArgs)
       node.send(service, (Symbol("$gen_cast"),'blah))
       node.isAlive(service) must be_==(true)
     }
 
-    "deliver calls" in {
+    "deliver calls" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[CallEchoService,NoArgs](NoArgs)
       val mbox = node.spawnMbox
@@ -34,7 +31,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       mbox.receive must be_==((ref,'blah))
     }
 
-    "respond to pings" in {
+    "respond to pings" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[CastNoopService,NoArgs](NoArgs)
       val mbox = node.spawnMbox
@@ -43,7 +40,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       mbox.receive must be_==(('pong, ref))
     }
 
-    "call and response" in {
+    "call and response" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[CallAndReceiveService,NoArgs](NoArgs)
       val mbox = node.spawnMbox
@@ -54,7 +51,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       mbox.receive must be_==("barf")
     }
     
-    "trap exits" in {
+    "trap exits" in new Context {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[TrapExitService,NoArgs](NoArgs)
       val mbox = node.spawnMbox
