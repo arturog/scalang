@@ -309,13 +309,13 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawn[T <: Process](implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(false))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(false))
     pid
   }
 
   def spawn[T <: Process](regName : Symbol)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, false))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, false))
     registeredNames.put(regName, pid)
     pid
   }
@@ -326,13 +326,13 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawn[T <: Process](reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(reentrant))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(reentrant))
     pid
   }
 
   def spawn[T <: Process](regName : Symbol, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, reentrant))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, reentrant))
     registeredNames.put(regName, pid)
     pid
   }
@@ -347,7 +347,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawnService[T <: Service[A], A <: Product](args : A, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createService(mf.erasure.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(reentrant))
+    createService(mf.runtimeClass.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(reentrant))
     pid
   }
 
@@ -365,7 +365,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawnService[T <: Service[A], A <: Product](regName : Symbol, args : A, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createService(mf.erasure.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(regName.name, reentrant))
+    createService(mf.runtimeClass.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(regName.name, reentrant))
     registeredNames.put(regName, pid)
     pid
   }
