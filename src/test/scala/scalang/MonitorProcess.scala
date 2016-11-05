@@ -8,6 +8,7 @@ class MonitorProcess(ctx : ProcessContext) extends Process(ctx) {
       expectedPid = pid
       this.sendTo = sendTo
       sendTo ! 'ok
+      'ok
     case ('exit, msg : Any) =>
       'ok
     case ('timeout) =>
