@@ -1,7 +1,7 @@
 package scalang.node
 
-import org.specs._
-import org.specs.runner._
+import org.specs2.mutable._
+
 import org.jboss.{netty => netty}
 import netty.buffer._
 import netty.channel._
@@ -19,7 +19,7 @@ class ClientHandshakeHandlerSpec extends SpecificationWithJUnit {
       })
       val embedder = new TwoWayCodecEmbedder[Any](handshake)
       val nameMsg = embedder.poll
-      nameMsg must beLike { case NameMessage(5, _, node) => true }
+      nameMsg must beLike { case NameMessage(5, _, node) => ok }
       embedder.upstreamMessage(StatusMessage("ok"))
       embedder.upstreamMessage(ChallengeMessage(5, 32765, 15000, "tmp@blah"))
       val respMsg = embedder.poll
@@ -29,13 +29,13 @@ class ClientHandshakeHandlerSpec extends SpecificationWithJUnit {
         val md5 = MessageDigest.getInstance("MD5")
         md5.update(cookie.getBytes)
         md5.update("15000".getBytes)
-        digest.deep == md5.digest.deep
+        digest must beEqualTo(md5.digest)
       }
       val md5 = MessageDigest.getInstance("MD5")
       md5.update(cookie.getBytes)
       md5.update(handshake.mask(challenge).toString.getBytes)
       embedder.upstreamMessage(ChallengeAckMessage(md5.digest))
-      handshake.isVerified must ==(true)
+      handshake.isVerified must be_==(true)
     }
   }
 }

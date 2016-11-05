@@ -1,7 +1,6 @@
 package scalang.node
 
-import org.specs._
-import org.specs.runner._
+import org.specs2.mutable._
 import scalang.util._
 import org.jboss.{netty => netty}
 import netty.handler.codec.embedder._
@@ -17,7 +16,7 @@ class HandshakeEncoderSpec extends SpecificationWithJUnit {
 
       val buffer = embedder.poll
       val bytes = buffer.array
-      bytes.deep must ==(ByteArray(0,15, 110, 0,5, 0,0,127,253, 116,109,112,64,98,108,97,104).deep)
+      bytes.deep must be_==(ByteArray(0,15, 110, 0,5, 0,0,127,253, 116,109,112,64,98,108,97,104).deep)
     }
 
     "encode status messages" in {
@@ -27,7 +26,7 @@ class HandshakeEncoderSpec extends SpecificationWithJUnit {
 
       val buffer = embedder.poll
       val bytes = buffer.array
-      bytes.deep must ==(ByteArray(0,3, 115, 111,107).deep)
+      bytes.deep must be_==(ByteArray(0,3, 115, 111,107).deep)
     }
 
     "encode challenge messages" in {
@@ -37,7 +36,7 @@ class HandshakeEncoderSpec extends SpecificationWithJUnit {
 
       val buffer = embedder.poll
       val bytes = buffer.array
-      bytes.deep must ==(ByteArray(0,19, 110, 0,5, 0,0,127,253, 0,1,56,213, 116,109,112,64,98,108,97,104).deep)
+      bytes.deep must be_==(ByteArray(0,19, 110, 0,5, 0,0,127,253, 0,1,56,213, 116,109,112,64,98,108,97,104).deep)
     }
 
     "encode challenge reply messages" in {
@@ -47,7 +46,7 @@ class HandshakeEncoderSpec extends SpecificationWithJUnit {
 
       val buffer = embedder.poll
       val bytes = buffer.array
-      bytes.deep must ==(ByteArray(0,21, 114, 0,1,56,213, 112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep)
+      bytes.deep must be_==(ByteArray(0,21, 114, 0,1,56,213, 112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep)
     }
 
     "encode ack messages" in {
@@ -57,7 +56,7 @@ class HandshakeEncoderSpec extends SpecificationWithJUnit {
 
       val buffer = embedder.poll
       val bytes = buffer.array
-      bytes.deep must ==(ByteArray(0,17, 97, 112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep)
+      bytes.deep must be_==(ByteArray(0,17, 97, 112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep)
     }
   }
 }

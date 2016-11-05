@@ -20,8 +20,9 @@ class EpmdSpec extends SpecificationWithJUnit {
     "publish a port to a running epmd instance" in {
       val epmd = Epmd("localhost")
       val creation = epmd.alive(5480, "fuck@you.com")
-      creation must beLike { case Some(v : Int) => true }
+      creation must beLike { case Some(v : Int) => ok }
       epmd.close
+      ok
     }
 
     "retrieve a port" in {
@@ -34,6 +35,8 @@ class EpmdSpec extends SpecificationWithJUnit {
 
       epmdPublish.close
       epmdQuery.close
+
+      ok
     }
   }
 }

@@ -22,7 +22,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       node = Node(Symbol("test@localhost"), cookie)
       val service = node.spawnService[CastNoopService,NoArgs](NoArgs)
       node.send(service, (Symbol("$gen_cast"),'blah))
-      node.isAlive(service) must ==(true)
+      node.isAlive(service) must be_==(true)
     }
 
     "deliver calls" in {
@@ -31,7 +31,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       val mbox = node.spawnMbox
       val ref = node.makeRef
       node.send(service, (Symbol("$gen_call"), (mbox.self, ref), 'blah))
-      mbox.receive must ==((ref,'blah))
+      mbox.receive must be_==((ref,'blah))
     }
 
     "respond to pings" in {
@@ -40,7 +40,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       val mbox = node.spawnMbox
       val ref = node.makeRef
       node.send(service, ('ping, mbox.self, ref))
-      mbox.receive must ==(('pong, ref))
+      mbox.receive must be_==(('pong, ref))
     }
 
     "call and response" in {
@@ -49,9 +49,9 @@ class ServiceSpec extends SpecificationWithJUnit {
       val mbox = node.spawnMbox
       node.send(service, mbox.self)
       val (Symbol("$gen_call"), (_, ref : Reference), req) = mbox.receive
-      req must ==("blah")
+      req must be_==("blah")
       node.send(service, (ref, "barf"))
-      mbox.receive must ==("barf")
+      mbox.receive must be_==("barf")
     }
     
     "trap exits" in {
@@ -61,7 +61,7 @@ class ServiceSpec extends SpecificationWithJUnit {
       mbox.link(service)
       mbox.exit('terminate)
       Thread.sleep(1000)
-      node.isAlive(service) must ==(true)
+      node.isAlive(service) must be_==(true)
     }
   }
 }
