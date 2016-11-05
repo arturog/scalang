@@ -26,10 +26,13 @@ import java.util.Formatter
 import java.util.{List => JList}
 import scalang.util.ByteArray
 import scalang.util.CamelToUnder._
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 
-class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) extends OneToOneEncoder with Logging with Instrumented {
+import nl.grons.metrics.scala.InstrumentedBuilder
 
+class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) extends OneToOneEncoder with Logging with InstrumentedBuilder {
+  override val metricRegistry = new MetricRegistry()
+  
   val encodeTimer = metrics.timer("encoding", peer.name)
 
   override def encode(ctx : ChannelHandlerContext, channel : Channel, obj : Any) : Object = {

@@ -16,7 +16,7 @@
 package scalang.node
 
 import scalang._
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 import org.jetlang.fibers._
 import org.jetlang.channels._
 import org.jetlang.core._
@@ -24,12 +24,13 @@ import java.util.concurrent.TimeUnit
 import org.cliffc.high_scale_lib.NonBlockingHashSet
 import org.cliffc.high_scale_lib.NonBlockingHashMap
 import scala.collection.JavaConversions._
-import com.boundary.logula.Logging
+
+import nl.grons.metrics.scala.InstrumentedBuilder
 
 abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   val self = ctx.pid
   val fiber = ctx.fiber
-  val messageRate = metrics.meter("messages", "messages", instrumentedName)
+  val messageRate = metrics.meter("messages", instrumentedName)
   val executionTimer = metrics.timer("execution", instrumentedName)
   def process : ProcessLike
   
@@ -89,12 +90,14 @@ abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   
   def cleanup {
     fiber.dispose
-    metricsRegistry.removeMetric(getClass, "messages", instrumentedName)
-    metricsRegistry.removeMetric(getClass, "execution", instrumentedName)
+    metricRegistry.remove("messages")
+    metricRegistry.remove("execution")
   }
 }
 
-trait ProcessAdapter extends ExitListenable with SendListenable with LinkListenable with MonitorListenable with Instrumented with Logging {
+trait ProcessAdapter extends ExitListenable with SendListenable with LinkListenable with MonitorListenable with InstrumentedBuilder with Logging {
+  override val metricRegistry = new MetricRegistry()
+  
   var state = 'alive
   def self : Pid
   def fiber : Fiber

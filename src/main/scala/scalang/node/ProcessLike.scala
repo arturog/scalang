@@ -16,10 +16,12 @@
 package scalang.node
 
 import scalang._
-import com.yammer.metrics.scala._
-import com.boundary.logula.Logging
+import com.codahale.metrics._
 
-trait ProcessLike extends Instrumented with Logging {
+import nl.grons.metrics.scala.InstrumentedBuilder
+
+trait ProcessLike extends InstrumentedBuilder with Logging {
+  override val metricRegistry = new MetricRegistry()
   def adapter : ProcessAdapter
   def self : Pid
   

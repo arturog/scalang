@@ -32,9 +32,11 @@ import scalang.util._
 import java.security.SecureRandom
 import org.jboss.netty.logging._
 import netty.util.HashedWheelTimer
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 import org.jetlang.fibers.PoolFiberFactory
-import com.boundary.logula.Logging
+
+import nl.grons.metrics.scala.InstrumentedBuilder
+
 
 object Node {
   val random = SecureRandom.getInstance("SHA1PRNG")
@@ -178,8 +180,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     with LinkListener
     with MonitorListener
     with ReplyRegistry
-    with Instrumented
+    with InstrumentedBuilder
     with Logging {
+  override val metricRegistry = new MetricRegistry()
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
 
   val timer = new HashedWheelTimer
