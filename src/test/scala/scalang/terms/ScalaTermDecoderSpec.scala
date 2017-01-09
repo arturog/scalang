@@ -28,6 +28,11 @@ class ScalaTermDecoderSpec extends SpecificationWithJUnit {
         val thing = decoder.readTerm(copiedBuffer(ByteArray(99,49,46,49,52,49,53,57,48,48,48,48,48,48,48,48,48,48,49,48,52,54,54,101,43,48,48,0,0,0,0,0)))
         thing must be_==(1.14159)
       }
+      
+      "read new float ext" in {
+        val thing = decoder.readTerm(copiedBuffer(ByteArray(70,63,242,67,243,224,55,12,221)))
+        thing must be_==(1.14159)
+      }
 
       "read atoms" in {
         val thing = decoder.readTerm(copiedBuffer(ByteArray(100,0,4,98,108,97,104)))
@@ -66,6 +71,11 @@ class ScalaTermDecoderSpec extends SpecificationWithJUnit {
       "read lists" in {
         val thing = decoder.readTerm(copiedBuffer(ByteArray(108,0,0,0,3,100,0,1,97,100,0,1,98,100,0,1,99,106)))
         thing must be_==(List('a,'b,'c))
+      }
+      
+      "read lists of new float" in {
+        val thing = decoder.readTerm(copiedBuffer(ByteArray(108,0,0,0,2,70,63,243,51,51,51,51,51,51,70,64,2,102, 102,102,102,102,102,106)))
+        thing must be_==(List(1.2, 2.3))
       }
 
       "read improper lists" in {
