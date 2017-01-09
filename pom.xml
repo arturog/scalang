@@ -1,13 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.boundary</groupId>
+    <groupId>com.dmunch</groupId>
     <name>scalang</name>
-    <artifactId>scalang-scala_2.12.0-RC2</artifactId>
+    <artifactId>scalang-scala_2.12</artifactId>
     <packaging>jar</packaging>
-    <version>0.28.99</version>
+    <version>0.29-SNAPSHOT</version>
     <properties>
-        <scala.version>2.12.0-RC2</scala.version>
+        <scala.version>2.12.1</scala.version>
+        <scala.compat.version>2.12</scala.compat.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -18,24 +19,24 @@
     <dependencies>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
-            <artifactId>scala-logging_${scala.version}</artifactId>
+            <artifactId>scala-logging_${scala.compat.version}</artifactId>
             <version>3.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.22</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.22</version>
             <scope>test</scope>
         </dependency>
        <dependency>
-            <groupId>com.boundary</groupId>
-            <artifactId>overlock-scala_${scala.version}</artifactId>
-            <version>0.8.99</version>
+            <groupId>com.dmunch</groupId>
+            <artifactId>overlock-scala_${scala.compat.version}</artifactId>
+            <version>0.9.0-SNAPSHOT</version>
           </dependency>
         <dependency>
             <groupId>org.jetlang</groupId>
@@ -55,20 +56,29 @@
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
-            <artifactId>specs2-junit_${scala.version}</artifactId>
-            <version>3.8.5</version>
+            <artifactId>specs2-junit_${scala.compat.version}</artifactId>
+            <version>3.8.6</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <repositories>
         <repository>
           <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <id>snapshots</id>
+          <name>oss-jfrog-artifactory-snapshots</name>
+          <url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+        </repository>
+        <!--
+           <repository>
+          <snapshots>
             <enabled>false</enabled>
           </snapshots>
           <id>bintray-dmunch-clouseau</id>
           <name>bintray</name>
           <url>http://dl.bintray.com/dmunch/clouseau</url>
-        </repository>
+        </repository>-->
         <repository>
             <id>CloudantPublicRepo</id>
             <name>Cloudant Public Repo</name>
@@ -230,14 +240,20 @@
 
     <distributionManagement>
         <repository>
-            <id>maven.cloudant.com</id>
-            <name>maven.cloudant.com-releases</name>
-            <url>scpexe://cloudant@maven.cloudant.com/var/www/domains/cloudant.com/maven/htdocs/repo/</url>
+          <id>bintray-dmunch-clouseau</id>
+          <url>https://api.bintray.com/maven/dmunch/clouseau/scalang-scala/;publish=1</url>
         </repository>
+        <!--
         <snapshotRepository>
             <id>maven.cloudant.com</id>
             <name>maven.cloudant.com-snapshots</name>
             <url>scpexe://cloudant@maven.cloudant.com/var/www/domains/cloudant.com/maven/htdocs/repo/</url>
+        </snapshotRepository>
+        -->
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>oss-jfrog-artifactory-snapshots</name>
+            <url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
         </snapshotRepository>
     </distributionManagement>
 
