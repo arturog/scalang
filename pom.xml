@@ -1,26 +1,22 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.dmunch</groupId>
+    <groupId>com.cloudant</groupId>
     <name>scalang</name>
-    <artifactId>scalang-scala_2.12</artifactId>
+    <artifactId>scalang-scala_2.13</artifactId>
     <packaging>jar</packaging>
-    <version>0.28-cloudant6-SNAPSHOT</version>
+    <version>0.40-SNAPSHOT</version>
     <properties>
-        <scala.version>2.12.1</scala.version>
-        <scala.compat.version>2.12</scala.compat.version>
+        <scala.version>2.13.1</scala.version>
+        <scala.compat.version>2.13</scala.compat.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
-    <prerequisites>
-        <maven>2.2.1</maven>
-    </prerequisites>
 
     <dependencies>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
             <artifactId>scala-logging_${scala.compat.version}</artifactId>
-            <version>3.5.0</version>
+            <version>3.9.2</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -34,7 +30,7 @@
             <scope>test</scope>
         </dependency>
        <dependency>
-            <groupId>com.dmunch</groupId>
+            <groupId>com.cloudant</groupId>
             <artifactId>overlock-scala_${scala.compat.version}</artifactId>
             <version>0.9.0-SNAPSHOT</version>
           </dependency>
@@ -57,37 +53,15 @@
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.compat.version}</artifactId>
-            <version>3.8.6</version>
+            <version>4.7.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
     <repositories>
         <repository>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-          <id>snapshots</id>
-          <name>oss-jfrog-artifactory-snapshots</name>
-          <url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
-        </repository>
-        <!--
-           <repository>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-          <id>bintray-dmunch-clouseau</id>
-          <name>bintray</name>
-          <url>http://dl.bintray.com/dmunch/clouseau</url>
-        </repository>-->
-        <repository>
             <id>CloudantPublicRepo</id>
             <name>Cloudant Public Repo</name>
             <url>http://maven.cloudant.com/repo/</url>
-        </repository>
-        <repository>
-            <id>BoundaryPublicRepo</id>
-            <name>Boundary Public Repo</name>
-            <url>http://maven.boundary.com/artifactory/repo/</url>
         </repository>
         <repository>
             <id>ScalaToolsMaven2Repository</id>
@@ -119,7 +93,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>3.4.6</version>
         <executions>
           <execution>
             <id>cmain</id>
@@ -165,7 +139,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -239,10 +213,6 @@
     </reporting>
 
     <distributionManagement>
-        <repository>
-          <id>bintray-dmunch-clouseau</id>
-          <url>https://api.bintray.com/maven/dmunch/clouseau/scalang-scala/;publish=1</url>
-        </repository>
         <!--
         <snapshotRepository>
             <id>maven.cloudant.com</id>
@@ -250,16 +220,8 @@
             <url>scpexe://cloudant@maven.cloudant.com/var/www/domains/cloudant.com/maven/htdocs/repo/</url>
         </snapshotRepository>
         -->
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>oss-jfrog-artifactory-snapshots</name>
-            <url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
-        </snapshotRepository>
     </distributionManagement>
-
     <scm>
         <connection>scm:git:https://github.com/cloudant/scalang.git</connection>
     </scm>
-
-
 </project>
