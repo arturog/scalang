@@ -1,7 +1,7 @@
 package scalang.node
 
-import org.specs._
-import org.specs.runner._
+import org.specs2.mutable._
+
 import scalang.util._
 import org.jboss.{netty => netty}
 import netty.handler.codec.embedder._
@@ -17,9 +17,9 @@ class HandshakeDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(bytes)
       embedder.offer(buffer)
       val msg = embedder.poll
-      msg must ==(NameMessage(5, 32765, "tmp@blah"))
+      msg must be_==(NameMessage(5, 32765, "tmp@blah"))
 
-      decoder.mode must ==('challenge) //decoding a name message should trigger a state change
+      decoder.mode must be_==('challenge) //decoding a name message should trigger a state change
     }
 
     "decode status messages" in {
@@ -30,7 +30,7 @@ class HandshakeDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(bytes)
       embedder.offer(buffer)
       val msg = embedder.poll
-      msg must ==(StatusMessage("ok"))
+      msg must be_==(StatusMessage("ok"))
     }
 
     "decode challenge messages" in {
@@ -41,7 +41,7 @@ class HandshakeDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(bytes)
       embedder.offer(buffer)
       val msg = embedder.poll
-      msg must ==(ChallengeMessage(5, 32765, 80085, "tmp@blah"))
+      msg must be_==(ChallengeMessage(5, 32765, 80085, "tmp@blah"))
     }
 
     "decode reply messages" in {
@@ -52,7 +52,7 @@ class HandshakeDecoderSpec extends SpecificationWithJUnit {
       embedder.offer(buffer)
       val msg = embedder.poll
       msg must beLike { case ChallengeReplyMessage(80085, digest) =>
-        digest.deep == ByteArray(112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep
+        digest must beEqualTo(ByteArray(112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112))
       }
     }
 
@@ -64,7 +64,7 @@ class HandshakeDecoderSpec extends SpecificationWithJUnit {
       embedder.offer(buffer)
       val msg = embedder.poll
       msg must beLike { case ChallengeAckMessage(digest) =>
-        digest.deep == ByteArray(112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112).deep
+        digest must beEqualTo(ByteArray(112,111,111,111,111,111,111,111,111,111,111,111,111,111,111,112))
       }
     }
   }

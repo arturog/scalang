@@ -22,7 +22,7 @@ import netty.channel._
 import netty.bootstrap._
 import netty.handler.codec.frame._
 import socket.nio.NioServerSocketChannelFactory
-import com.boundary.logula.Logging
+
 
 class ErlangNodeServer(node : ErlangNode, typeFactory : TypeFactory, typeEncoder: TypeEncoder,
                         typeDecoder : TypeDecoder) extends Logging {

@@ -1,7 +1,7 @@
 package scalang.node
 
-import org.specs._
-import org.specs.runner._
+import org.specs2.mutable._
+
 import scalang.util._
 import org.jboss.{netty => netty}
 import netty.handler.codec.embedder._
@@ -68,7 +68,7 @@ class FailureDetectionHandlerSpec extends SpecificationWithJUnit {
       val handler = new FailureDetectionHandler(Symbol("test@localhost.local"), clock, 4, timer)
       val embedder = new DecoderEmbedder[Any](handler)
       embedder.offer(LinkMessage(null, null))
-      embedder.poll must beLike { case LinkMessage(null, null) => true }
+      embedder.poll must beLike { case LinkMessage(null, null) => ok }
     }
 
     "tolerate occasional missed ticks" in {
@@ -79,9 +79,11 @@ class FailureDetectionHandlerSpec extends SpecificationWithJUnit {
       timer.fire
       timer.fire
       embedder.offer(LinkMessage(null, null))
-      embedder.poll must notBeNull
+      embedder.poll must not(beNull)
       timer.fire
       timer.fire
+
+      ok
     }
   }
 }

@@ -4,13 +4,16 @@ import org.jboss.netty
 import netty.bootstrap._
 import netty.channel._
 import netty.handler.codec.frame._
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 import java.util.concurrent._
+import nl.grons.metrics.scala.InstrumentedBuilder
 
-class PacketCounter(name : String) extends SimpleChannelHandler with Instrumented {
-  val ingress = metrics.meter("ingress", "packets", name, TimeUnit.SECONDS)
-  val egress = metrics.meter("egress", "packets", name, TimeUnit.SECONDS)
-  val exceptions = metrics.meter("exceptions", "exceptions", name, TimeUnit.SECONDS)
+class PacketCounter(name : String) extends SimpleChannelHandler with InstrumentedBuilder {
+  override val metricRegistry = new MetricRegistry()
+
+  val ingress = metrics.meter("ingress", "packets")
+  val egress = metrics.meter("egress", "packets")
+  val exceptions = metrics.meter("exceptions", "exceptions")
 
   override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
     ingress.mark

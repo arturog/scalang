@@ -32,9 +32,11 @@ import scalang.util._
 import java.security.SecureRandom
 import org.jboss.netty.logging._
 import netty.util.HashedWheelTimer
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 import org.jetlang.fibers.PoolFiberFactory
-import com.boundary.logula.Logging
+
+import nl.grons.metrics.scala.InstrumentedBuilder
+
 
 object Node {
   val random = SecureRandom.getInstance("SHA1PRNG")
@@ -178,8 +180,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     with LinkListener
     with MonitorListener
     with ReplyRegistry
-    with Instrumented
+    with InstrumentedBuilder
     with Logging {
+  override val metricRegistry = new MetricRegistry()
   InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory)
 
   val timer = new HashedWheelTimer
@@ -306,13 +309,13 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawn[T <: Process](implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(false))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(false))
     pid
   }
 
   def spawn[T <: Process](regName : Symbol)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, false))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, false))
     registeredNames.put(regName, pid)
     pid
   }
@@ -323,13 +326,13 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawn[T <: Process](reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(reentrant))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(reentrant))
     pid
   }
 
   def spawn[T <: Process](regName : Symbol, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createProcess(mf.erasure.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, reentrant))
+    createProcess(mf.runtimeClass.asInstanceOf[Class[T]], pid, poolFactory.createBatchExecutor(regName.name, reentrant))
     registeredNames.put(regName, pid)
     pid
   }
@@ -344,7 +347,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawnService[T <: Service[A], A <: Product](args : A, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createService(mf.erasure.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(reentrant))
+    createService(mf.runtimeClass.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(reentrant))
     pid
   }
 
@@ -362,7 +365,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   def spawnService[T <: Service[A], A <: Product](regName : Symbol, args : A, reentrant : Boolean)(implicit mf : Manifest[T]) : Pid = {
     val pid = createPid
-    createService(mf.erasure.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(regName.name, reentrant))
+    createService(mf.runtimeClass.asInstanceOf[Class[T]], pid, args, poolFactory.createBatchExecutor(regName.name, reentrant))
     registeredNames.put(regName, pid)
     pid
   }
@@ -466,9 +469,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   def deliverLink(link : Link) {
     val from = link.from
     val to = link.to
-    log.debug("deliverLink %s -> %s", from, to)
+    log.debug("deliverLink {} -> {}", from, to)
     if (from == to) {
-      log.warn("Trying to link a pid to itself: %s", from)
+      log.warn("Trying to link a pid to itself: {}", from)
       return
     }
 
@@ -489,13 +492,13 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   //node internal interface
   def link(from : Pid, to : Pid) {
-    log.debug("link %s -> %s", from, to)
+    log.debug("link {} -> {}", from, to)
     if (from == to) {
-      log.warn("Trying to link a pid to itself: %s", from)
+      log.warn("Trying to link a pid to itself: {}", from)
       return
     }
     if (!isLocal(from) && !isLocal(to)) {
-      log.warn("Trying to link non-local pids: %s -> %s", from, to)
+      log.warn("Trying to link non-local pids: {} -> {}", from, to)
       return
     }
 
@@ -510,14 +513,14 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   // Link two pids without triggering a send of a Link message to the remote.
   def linkWithoutNotify(from : Pid, to : Pid, channel: Channel) {
-    log.debug("link w/o notify %s -> %s", from, to)
+    log.debug("link w/o notify {} -> {}", from, to)
     if (from == to) {
-      log.warn("Trying to link a pid to itself: %s", from)
+      log.warn("Trying to link a pid to itself: {}", from)
       return
     }
 
     if (!isLocal(from) && !isLocal(to)) {
-      log.warn("Trying to link non-local pids: %s -> %s", from, to)
+      log.warn("Trying to link non-local pids: {} -> {}", from, to)
       return
     }
 
@@ -528,7 +531,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
           links.getOrElseUpdate(channel, new NonBlockingHashSet[Link]).add(link)
       case None =>
         if (isLocal(from)) {
-          log.warn("Try to link non-live process %s to %s", from, to)
+          log.warn("Try to link non-live process {} to {}", from, to)
           val link = Link(from, to)
           break(link, 'noproc)
         } else {
@@ -544,7 +547,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
       case None =>
         if (isLocal(to)) {
-          log.warn("Try to link non-live process %s to %s", to, from)
+          log.warn("Try to link non-live process {} to {}", to, from)
           val link = Link(from, to)
           break(link, 'noproc)
         } else {
@@ -557,9 +560,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     val monitoring = monitor.monitoring
     val monitored = monitor.monitored
     var ref = monitor.ref
-    log.debug("deliverMonitor %s -> %s (%s)", monitoring, monitored, ref)
+    log.debug(s"deliverMonitor $monitoring -> $monitored ($ref)")
     if (monitoring == monitored) {
-      log.warn("A process tried to monitor itself: %s", monitoring)
+      log.warn("A process tried to monitor itself: {}", monitoring)
       return
     }
 
@@ -579,27 +582,27 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def monitorWithoutNotify(monitoring : Pid, monitored : Any, ref : Reference, channel : Channel) {
-    log.debug("monitor %s -> %s (%s)", monitoring, monitored, ref)
+    log.debug(s"monitor $monitoring -> $monitored ($ref)")
     if (monitoring == monitored) {
-      log.warn("Trying to monitor itself: %s", monitoring)
+      log.warn("Trying to monitor itself: {}", monitoring)
       return
     }
 
     if (!isLocal(monitoring) && !isLocal(monitored)) {
-      log.warn("Try to monitor between non-local pids: %s -> %s (%s)", monitoring, monitored, ref)
+      log.warn(s"Try to monitor between non-local pids: $monitoring -> $monitored ($ref)")
       return
     }
 
-    log.debug("pids %s", processes.keys.toList)
+    log.debug("pids {}", processes.keys.toList)
     process(monitored) match {
       case Some(p) =>
-        log.debug("adding monitor for %s", p)
+        log.debug("adding monitor for {}", p)
         val monitor = p.registerMonitor(monitoring, ref)
         if (!isLocal(monitored))
           monitors.getOrElseUpdate(channel, new NonBlockingHashSet[Monitor]).add(monitor)
       case None =>
         if (isLocal(monitored)) {
-          log.warn("Try to monitor non-live process: %s -> %s (%s)", monitoring, monitored, ref)
+          log.warn(s"Try to monitor between non-live process: $monitoring -> $monitored ($ref)")
           val monitor = Monitor(monitoring, monitored, ref)
           monitorExit(monitor, 'noproc)
         } else {
@@ -611,7 +614,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
 
   //node internal interface
   def demonitor(monitoring : Pid, monitored : Any, ref : Reference) {
-    log.debug("demonitor %s -> %s (%s)", monitoring, monitored, ref)
+    log.debug(s"demonitor $monitoring -> $monitored ($ref)")
     for (p <- process(monitored)) {
       p.demonitor(ref)
     }
@@ -621,9 +624,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     val monitoring = monitor.monitoring
     val monitored = monitor.monitored
     val ref = monitor.ref
-    log.debug("handling monitor exit for %s", monitor)
+    log.debug("handling monitor exit for {}", monitor)
     if (isLocal(monitoring)) {
-      log.debug("monitoring is local %s", monitoring)
+      log.debug("monitoring is local {}", monitoring)
       for (proc <- process(monitoring)) {
         proc.handleMonitorExit(monitored, ref, reason)
       }
@@ -705,21 +708,21 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def handleSend(to : Pid, msg : Any) {
-    log.debug("send %s to %s", msg, to)
+    log.debug(s"send $msg to $to")
     if (!tryDeliverReply(to,msg)) {
       if (isLocal(to)) {
         val process = processes.get(to)
-        log.debug("send local to %s", process)
+        log.debug("send local to {}", process)
         if (process != null) {
           process.handleMessage(msg)
         }
       } else {
-        log.debug("send remote to %s", to.node)
+        log.debug("send remote to {}", to.node)
         try {
           getOrConnectAndSend(to.node, SendMessage(to, msg))
         } catch {
           case e : Exception =>
-            log.warn(e, "trouble sending message to %s", to.node)
+            log.warn(s"trouble sending message to $to.node", e)
         }
       }
     }
@@ -741,7 +744,9 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
       getOrConnectAndSend(peer, RegSend(from, regName, msg))
     } catch {
       case e : Exception =>
-        log.warn(e, "trouble sending message to %s", peer)
+        //Passing this exception to log.warn makes the test-runner hang, thus we're 
+        //omitting it here. 
+        log.warn(s"trouble sending message to $peer")
     }
   }
 
@@ -854,7 +859,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def getOrConnectAndSend(peer : Symbol, msg : Any, afterHandshake : Channel => Unit = { channel => Unit }) {
-    log.debug("node %s sending %s", this, msg)
+    log.debug(s"node $this sending $msg")
     val channel = channels.getOrElseUpdate(peer, {
       connectAndSend(peer, None)
     })

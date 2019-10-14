@@ -1,6 +1,6 @@
 package scalang.epmd
 
-import org.specs._
+import org.specs2.mutable._
 import scalang.util._
 import org.jboss.{netty => netty}
 import netty.handler.codec.embedder._
@@ -14,7 +14,7 @@ class EpmdEncoderSpec extends SpecificationWithJUnit {
       val buffer = embedder.poll
       val bytes = new Array[Byte](buffer.readableBytes)
       buffer.readBytes(bytes)
-      bytes.deep must ==(ByteArray(0,17,120,21,54,110,0,0,5,0,5,0,4,102,117,99,107,0,0).deep)
+      bytes.deep must be_==(ByteArray(0,17,120,21,54,110,0,0,5,0,5,0,4,102,117,99,107,0,0).deep)
     }
 
     "encode a port please request" in {
@@ -23,7 +23,7 @@ class EpmdEncoderSpec extends SpecificationWithJUnit {
       val buffer = embedder.poll
       val bytes = new Array[Byte](buffer.readableBytes)
       buffer.readBytes(bytes)
-      bytes.deep must ==(ByteArray(0,5,122,102,117,99,107).deep)
+      bytes.deep must be_==(ByteArray(0,5,122,102,117,99,107).deep)
     }
   }
 }

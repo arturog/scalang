@@ -1,6 +1,6 @@
 package scalang.epmd
 
-import org.specs._
+import org.specs2.mutable._
 import scalang.util._
 import org.jboss.{netty => netty}
 import netty.handler.codec.embedder._
@@ -14,7 +14,7 @@ class EpmdDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(ByteArray(121, 0, 0, 20))
       embedder.offer(buffer)
       val resp = embedder.poll
-      resp must ==(AliveResp(0,20))
+      resp must be_==(AliveResp(0,20))
     }
 
     "decode port please response" in {
@@ -22,7 +22,7 @@ class EpmdDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(ByteArray(119, 0, 20, 140, ntypeR6, 0, 0, 5, 0, 5, 0, 4, 102, 117, 99, 107, 0, 0))
       embedder.offer(buffer)
       val resp = embedder.poll
-      resp must ==(PortPleaseResp(5260, "fuck"))
+      resp must be_==(PortPleaseResp(5260, "fuck"))
     }
 
     "decode port please error" in {
@@ -30,7 +30,7 @@ class EpmdDecoderSpec extends SpecificationWithJUnit {
       val buffer = copiedBuffer(ByteArray(119, 1))
       embedder.offer(buffer)
       val resp = embedder.poll
-      resp must ==(PortPleaseError(1))
+      resp must be_==(PortPleaseError(1))
     }
   }
 }

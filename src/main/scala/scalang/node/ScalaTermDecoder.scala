@@ -22,10 +22,11 @@ import java.nio._
 import netty.buffer._
 import scala.annotation.tailrec
 import scalang._
-import com.yammer.metrics.scala._
+import com.codahale.metrics._
 import scala.collection.mutable.ArrayBuffer
 import overlock.cache.CachedSymbol
 import sun.misc.Unsafe
+import nl.grons.metrics.scala.InstrumentedBuilder
 
 object ScalaTermDecoder {
   private val field = classOf[Unsafe].getDeclaredField("theUnsafe")
@@ -61,7 +62,8 @@ object ScalaTermDecoder {
   }
 }
 
-class ScalaTermDecoder(peer : Symbol, factory : TypeFactory, decoder : TypeDecoder = NoneTypeDecoder) extends OneToOneDecoder with Instrumented {
+class ScalaTermDecoder(peer : Symbol, factory : TypeFactory, decoder : TypeDecoder = NoneTypeDecoder) extends OneToOneDecoder with InstrumentedBuilder {
+  override val metricRegistry = new MetricRegistry()
   val decodeTimer = metrics.timer("decoding", peer.name)
 
   def decode(ctx : ChannelHandlerContext, channel : Channel, obj : Any) : Object = obj match {

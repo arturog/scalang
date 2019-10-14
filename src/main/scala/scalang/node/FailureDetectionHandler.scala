@@ -5,7 +5,7 @@ import netty.channel._
 import netty.util._
 import netty.handler.timeout._
 import java.util.concurrent._
-import com.boundary.logula.Logging
+import scalang.Logging
 
 class FailureDetectionHandler(node : Symbol, clock : Clock, tickTime : Int, timer : Timer) extends SimpleChannelHandler with Logging {
   @volatile var nextTick : Timeout = null
@@ -38,7 +38,7 @@ class FailureDetectionHandler(node : Symbol, clock : Clock, tickTime : Int, time
     override def run(timeout : Timeout) {
       val last = (clock.currentTimeMillis - lastTimeReceived) / 1000
       if (last > (tickTime - tickTime/4)) {
-        log.warn("Connection to %s has failed for %d seconds. Closing the connection.", node, last)
+        log.warn(s"Connection to $node has failed for $last seconds. Closing the connection.")
         Channels.fireExceptionCaught(ctx, exception);
       }
       ctx.getChannel.write(Tick)

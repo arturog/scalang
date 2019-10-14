@@ -18,7 +18,7 @@ package scalang.node
 import org.jboss.netty._
 import channel._
 import scalang._
-import com.boundary.logula.Logging
+
 
 class ErlangHandler(
     node : ErlangNode,
@@ -27,13 +27,13 @@ class ErlangHandler(
   @volatile var peer : Symbol = null
 
   override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
-    log.error(e.getCause, "error caught in erlang handler %s", peer)
+    log.error(s"error caught in erlang handler $peer", e.getCause)
     ctx.getChannel.close
   }
 
   override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
     val msg = e.getMessage
-    log.debug("handler message %s", msg)
+    log.debug("handler message {}", msg)
     msg match {
       case Tick =>
         ctx.getChannel.write(Tock) //channel heartbeat for erlang
@@ -45,7 +45,7 @@ class ErlangHandler(
         node.registerConnection(name, channel)
         afterHandshake(channel)
       case LinkMessage(from, to) =>
-        log.debug("received link request from %s.", from)
+        log.debug("received link request from {}.", from)
         node.linkWithoutNotify(from, to, e.getChannel)
       case SendMessage(to, msg) =>
         node.handleSend(to, msg)
@@ -67,7 +67,7 @@ class ErlangHandler(
   }
 
   override def channelDisconnected(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
-    log.info("channel disconnected %s %s. peer: %s", ctx, e, peer)
+    log.info("channel disconnected {} {}. peer: {}", ctx, e, peer)
     if (peer != null) {
       node.disconnected(peer, e.getChannel)
     }

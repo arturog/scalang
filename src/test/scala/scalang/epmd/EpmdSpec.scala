@@ -1,27 +1,18 @@
 package scalang.epmd
 
-import org.specs._
-import org.specs.runner._
-import java.lang.{Process => SysProcess}
+import org.specs2.mutable._
 import scalang._
 
-class EpmdSpec extends SpecificationWithJUnit {
-  "Epmd" should {
-    var proc : SysProcess = null
-    doBefore {
-      proc = EpmdCmd()
-    }
+class EpmdSpec extends SpecificationWithJUnit  with InEpmd {
+  sequential
 
-    doAfter {
-      proc.destroy
-      proc.waitFor
-    }
-
+  "Epmd" should {    
     "publish a port to a running epmd instance" in {
       val epmd = Epmd("localhost")
       val creation = epmd.alive(5480, "fuck@you.com")
-      creation must beLike { case Some(v : Int) => true }
+      creation must beLike { case Some(v : Int) => ok }
       epmd.close
+      ok
     }
 
     "retrieve a port" in {
@@ -34,6 +25,8 @@ class EpmdSpec extends SpecificationWithJUnit {
 
       epmdPublish.close
       epmdQuery.close
+
+      ok
     }
   }
 }
