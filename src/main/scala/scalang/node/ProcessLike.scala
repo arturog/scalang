@@ -18,7 +18,7 @@ package scalang.node
 import scalang._
 import com.codahale.metrics._
 
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 trait ProcessLike extends InstrumentedBuilder with Logging {
   override val metricRegistry = new MetricRegistry()

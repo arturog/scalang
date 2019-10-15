@@ -6,7 +6,7 @@ import netty.channel._
 import netty.handler.codec.frame._
 import com.codahale.metrics._
 import java.util.concurrent._
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 class PacketCounter(name : String) extends SimpleChannelHandler with InstrumentedBuilder {
   override val metricRegistry = new MetricRegistry()

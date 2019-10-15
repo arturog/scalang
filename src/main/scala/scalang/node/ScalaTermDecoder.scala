@@ -26,7 +26,7 @@ import com.codahale.metrics._
 import scala.collection.mutable.ArrayBuffer
 import overlock.cache.CachedSymbol
 import sun.misc.Unsafe
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 object ScalaTermDecoder {
   private val field = classOf[Unsafe].getDeclaredField("theUnsafe")

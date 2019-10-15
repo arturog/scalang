@@ -21,7 +21,7 @@ import scalang._
 import util._
 import java.util.ArrayDeque
 import scala.math._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import java.security.{SecureRandom,MessageDigest}
 
 
@@ -114,7 +114,7 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
     }
     posthandshake(peer,p)
 
-    for (msg <- messages) {
+    for (msg <- messages.asScala) {
       ctx.sendDownstream(msg)
     }
     messages.clear

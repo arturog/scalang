@@ -26,7 +26,7 @@ import org.jetlang._
 import core._
 import java.io._
 import netty.handler.execution.ExecutionHandler
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scalang.epmd._
 import scalang.util._
 import java.security.SecureRandom
@@ -35,7 +35,7 @@ import netty.util.HashedWheelTimer
 import com.codahale.metrics._
 import org.jetlang.fibers.PoolFiberFactory
 
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 
 object Node {
@@ -214,7 +214,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     for ((node,channel) <- channels) {
       channel.close
     }
-    for((pid,process) <- processes) {
+    for((pid,process) <- processes.asScala) {
       process.exit('node_shutdown)
     }
   }
@@ -438,7 +438,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def getNames : Set[Symbol] = {
-    registeredNames.keySet.toSet.asInstanceOf[Set[Symbol]]
+    registeredNames.keySet.asScala.asInstanceOf[Set[Symbol]]
   }
 
   def registerConnection(name : Symbol, channel : Channel) {
@@ -463,7 +463,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def nodes : Set[Symbol] = {
-    channels.keySet.toSet.asInstanceOf[Set[Symbol]]
+    channels.keySet.asInstanceOf[Set[Symbol]]
   }
 
   def deliverLink(link : Link) {
@@ -593,7 +593,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
       return
     }
 
-    log.debug("pids {}", processes.keys.toList)
+    log.debug("pids {}", processes.keys.asScala)
     process(monitored) match {
       case Some(p) =>
         log.debug("adding monitor for {}", p)
@@ -756,7 +756,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
         val fiber = pf.fiber
         fiber.dispose
       case _ =>
-        Unit
+        ()
     }
     processes.remove(from)
   }
@@ -839,26 +839,26 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
   }
 
   def disconnected(peer : Symbol, channel: Channel) {
-    if (channels.containsKey(peer)) {
+    if (channels.contains(peer)) {
       channels.remove(peer)
       //must break all links here
       if (links.contains(channel)) {
         val setOption = links.remove(channel)
-        for (set <- setOption; link <- set) {
+        for (set <- setOption; link <- set.asScala) {
           remoteBreak(link, 'noconnection)
         }
       }
       //must send all monitor exits too
       if (monitors.contains(channel)) {
         val setOption = monitors.remove(channel)
-        for (set <- setOption; monitor <- set) {
+        for (set <- setOption; monitor <- set.asScala) {
           remoteMonitorExit(monitor, 'noconnection)
         }
       }
     }
   }
 
-  def getOrConnectAndSend(peer : Symbol, msg : Any, afterHandshake : Channel => Unit = { channel => Unit }) {
+  def getOrConnectAndSend(peer : Symbol, msg : Any, afterHandshake : Channel => Unit = { channel => () }) {
     log.debug(s"node $this sending $msg")
     val channel = channels.getOrElseUpdate(peer, {
       connectAndSend(peer, None)
@@ -876,7 +876,7 @@ class ErlangNode(val name : Symbol, val cookie : String, config : NodeConfig) ex
     afterHandshake(channel)
   }
 
-  def connectAndSend(peer : Symbol, msg : Option[Any] = None, afterHandshake : Channel => Unit = {_ => Unit }) : Channel = {
+  def connectAndSend(peer : Symbol, msg : Option[Any] = None, afterHandshake : Channel => Unit = {_ => () }) : Channel = {
     val hostname = splitHostname(peer).getOrElse(throw new ErlangNodeException("Cannot resolve peer with no hostname: " + peer.name))
     val peerName = splitNodename(peer)
     val port = Epmd(hostname).lookupPort(peerName).getOrElse(throw new ErlangNodeException("Cannot lookup peer: " + peer.name))

@@ -23,9 +23,9 @@ import org.jetlang.core._
 import java.util.concurrent.TimeUnit
 import org.cliffc.high_scale_lib.NonBlockingHashSet
 import org.cliffc.high_scale_lib.NonBlockingHashMap
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   val self = ctx.pid
@@ -121,10 +121,10 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
     for(e <- exitListeners) {
       e.handleExit(self, reason)
     }
-    for (link <- links) {
+    for (link <- links.asScala) {
       link.break(reason)
     }
-    for (m <- monitors.values) {
+    for (m <- monitors.values.asScala) {
       m.monitorExit(reason)
     }
     cleanup

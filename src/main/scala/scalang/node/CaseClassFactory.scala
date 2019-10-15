@@ -47,7 +47,7 @@ class CaseClassFactory(searchPrefixes : Seq[String], typeMappings : Map[String,C
       try {
         Some(constructor.newInstance(parameters.asInstanceOf[Seq[Object]] : _*))
       } catch {
-        case _ => None
+        case _ : Throwable => None // FIXME: Catching all?  Very dodgy.
       }
     }.orElse {
       reader.reset
@@ -91,7 +91,7 @@ class CaseClassFactory(searchPrefixes : Seq[String], typeMappings : Map[String,C
           } catch {
             case e : Exception =>
               e.printStackTrace
-              Unit
+              ()
           }
         }
         None

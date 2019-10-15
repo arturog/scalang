@@ -22,7 +22,7 @@ import scalang._
 
 class ErlangHandler(
     node : ErlangNode,
-    afterHandshake : Channel => Unit = { _ => Unit }) extends SimpleChannelUpstreamHandler with Logging {
+    afterHandshake : Channel => Unit = { _ => () }) extends SimpleChannelUpstreamHandler with Logging {
 
   @volatile var peer : Symbol = null
 

@@ -28,7 +28,7 @@ import scalang.util.ByteArray
 import scalang.util.CamelToUnder._
 import com.codahale.metrics._
 
-import nl.grons.metrics.scala.InstrumentedBuilder
+import nl.grons.metrics4.scala.InstrumentedBuilder
 
 class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) extends OneToOneEncoder with Logging with InstrumentedBuilder {
   override val metricRegistry = new MetricRegistry()
