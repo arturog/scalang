@@ -14,7 +14,7 @@ class EpmdEncoderSpec extends SpecificationWithJUnit {
       val buffer = embedder.poll
       val bytes = new Array[Byte](buffer.readableBytes)
       buffer.readBytes(bytes)
-      bytes.deep must be_==(ByteArray(0,17,120,21,54,110,0,0,5,0,5,0,4,102,117,99,107,0,0).deep)
+      bytes must be_==(ByteArray(0,17,120,21,54,110,0,0,5,0,5,0,4,102,117,99,107,0,0))
     }
 
     "encode a port please request" in {
@@ -23,7 +23,7 @@ class EpmdEncoderSpec extends SpecificationWithJUnit {
       val buffer = embedder.poll
       val bytes = new Array[Byte](buffer.readableBytes)
       buffer.readBytes(bytes)
-      bytes.deep must be_==(ByteArray(0,5,122,102,117,99,107).deep)
+      bytes must be_==(ByteArray(0,5,122,102,117,99,107))
     }
   }
 }

@@ -4,7 +4,7 @@ import org.specs2.mutable._
 import scalang.node._
 import java.lang.{Process => JProc}
 import java.io._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class NodeSpec extends SpecificationWithJUnit with InEpmd {
   sequential 

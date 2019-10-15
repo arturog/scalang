@@ -3,7 +3,7 @@ package scalang
 import java.lang.ProcessBuilder
 import java.lang.{Process => SysProcess}
 import java.io._
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.mutable.StringBuilder
 import org.specs2.specification.BeforeAfterAll
 
@@ -13,7 +13,7 @@ object ErlangVM {
       (for (ev <- eval) yield {
         List("-eval", ev)
       }).getOrElse(Nil)
-    val builder = new ProcessBuilder(commands)
+    val builder = new ProcessBuilder(commands.asJava)
     builder.start
   }
 }
@@ -23,7 +23,7 @@ object Escript {
     val url = getClass.getClassLoader.getResource(command)
     val file = new File(url.getFile)
     file.setExecutable(true)
-    val builder = new ProcessBuilder(List(url.getFile) ++ args.toList)
+    val builder = new ProcessBuilder((List(url.getFile) ++ args.toList).asJava)
     builder.start
   }
 }
