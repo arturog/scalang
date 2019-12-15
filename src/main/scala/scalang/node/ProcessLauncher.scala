@@ -24,7 +24,7 @@ class ProcessLauncher[T <: Process](clazz : Class[T], ctx : ProcessContext) exte
   val referenceCounter = ctx.referenceCounter
   var process : Process = null
 
-  def init {
+  def init: Unit = {
     val constructor = clazz.getConstructor(classOf[ProcessContext])
     ctx.adapter = this
     process = constructor.newInstance(ctx)

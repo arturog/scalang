@@ -26,12 +26,12 @@ class ErlangHandler(
 
   @volatile var peer : Symbol = null
 
-  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
+  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent): Unit = {
     log.error(s"error caught in erlang handler $peer", e.getCause)
     ctx.getChannel.close
   }
 
-  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     val msg = e.getMessage
     log.debug("handler message {}", msg)
     msg match {
@@ -66,7 +66,7 @@ class ErlangHandler(
     }
   }
 
-  override def channelDisconnected(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelDisconnected(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     log.info("channel disconnected {} {}. peer: {}", ctx, e, peer)
     if (peer != null) {
       node.disconnected(peer, e.getChannel)

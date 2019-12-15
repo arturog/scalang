@@ -31,15 +31,15 @@ class EpmdHandler extends SimpleChannelUpstreamHandler with Logging {
     call
   }
 
-  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     log.debug("Oh snap channel closed.")
   }
 
-  override def channelDisconnected(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelDisconnected(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     log.debug("Uh oh disconnect.")
   }
 
-  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
+  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent): Unit = {
     var rsp = queue.poll
     while (rsp != null) {
       rsp.setError(e.getCause)
@@ -47,7 +47,7 @@ class EpmdHandler extends SimpleChannelUpstreamHandler with Logging {
     }
   }
 
-  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     val response = e.getMessage
     val rsp = queue.poll()
     if (rsp != null) {
@@ -63,13 +63,13 @@ class EpmdHandler extends SimpleChannelUpstreamHandler with Logging {
     val error = new AtomicReference[Throwable]
     val lock = new CountDownLatch(1)
 
-    def setError(t : Throwable) {
+    def setError(t : Throwable): Unit = {
       error.set(t)
       lock.countDown()
 
     }
 
-    def set(v : Any) {
+    def set(v : Any): Unit = {
       response.set(v)
       lock.countDown()
     }

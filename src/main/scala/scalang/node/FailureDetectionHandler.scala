@@ -9,21 +9,21 @@ import scalang.Logging
 
 class FailureDetectionHandler(node : Symbol, clock : Clock, tickTime : Int, timer : Timer) extends SimpleChannelHandler with Logging {
   @volatile var nextTick : Timeout = null
-  @volatile var lastTimeReceived = 0l
+  @volatile var lastTimeReceived = 0L
   @volatile var ctx : ChannelHandlerContext = null
   val exception = new ReadTimeoutException
 
-  override def channelOpen(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelOpen(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     this.ctx = ctx
     lastTimeReceived = clock.currentTimeMillis
     scheduleTick
   }
 
-  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     if (nextTick != null) nextTick.cancel
   }
 
-  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     lastTimeReceived = clock.currentTimeMillis
     e.getMessage match {
       case Tick =>
@@ -35,7 +35,7 @@ class FailureDetectionHandler(node : Symbol, clock : Clock, tickTime : Int, time
   }
 
   object TickTask extends TimerTask {
-    override def run(timeout : Timeout) {
+    override def run(timeout : Timeout): Unit = {
       val last = (clock.currentTimeMillis - lastTimeReceived) / 1000
       if (last > (tickTime - tickTime/4)) {
         log.warn(s"Connection to $node has failed for $last seconds. Closing the connection.")
@@ -46,7 +46,7 @@ class FailureDetectionHandler(node : Symbol, clock : Clock, tickTime : Int, time
     }
   }
 
-  def scheduleTick {
+  def scheduleTick: Unit = {
     nextTick = timer.newTimeout(TickTask, tickTime / 4, TimeUnit.SECONDS)
   }
 }

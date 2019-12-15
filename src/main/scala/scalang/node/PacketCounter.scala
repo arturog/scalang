@@ -11,21 +11,21 @@ import nl.grons.metrics4.scala.InstrumentedBuilder
 class PacketCounter(name : String) extends SimpleChannelHandler with InstrumentedBuilder {
   override val metricRegistry = new MetricRegistry()
 
-  val ingress = metrics.meter("ingress", "packets")
-  val egress = metrics.meter("egress", "packets")
-  val exceptions = metrics.meter("exceptions", "exceptions")
+  val ingress = metrics.meter("ingress.packets")
+  val egress = metrics.meter("egress.packets")
+  val exceptions = metrics.meter("exceptions.exceptions")
 
-  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     ingress.mark
     super.messageReceived(ctx, e)
   }
 
-  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
+  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent): Unit = {
      exceptions.mark
      super.exceptionCaught(ctx, e)
   }
 
-  override def writeRequested(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def writeRequested(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     egress.mark
     super.writeRequested(ctx, e)
   }

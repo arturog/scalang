@@ -18,7 +18,7 @@ package scalang.node
 import scalang._
 
 trait MonitorListener {
-  def deliverMonitor(monitor : Monitor)
+  def deliverMonitor(monitor : Monitor): Unit
 
-  def monitorExit(monitor : Monitor, reason : Any)
+  def monitorExit(monitor : Monitor, reason : Any): Unit
 }

@@ -15,6 +15,7 @@
 //
 package scalang.node
 
+import scala.reflect.ClassTag
 import org.jboss.netty
 import netty.handler.codec.oneone._
 import netty.channel._
@@ -72,7 +73,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     }
   }
 
-  def encodeObject(buffer : ChannelBuffer, obj : Any) : Unit = obj match {
+  def encodeObject[T: ClassTag](buffer : ChannelBuffer, obj : T) : Unit = obj match {
     case encoder(_) =>
       encoder.encode(obj, buffer)
     case i : Int if i >= 0 && i <= 255 =>
@@ -86,9 +87,9 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     case d : Double =>
       writeFloat(buffer, d)
     case true =>
-      writeAtom(buffer, 'true)
+      writeAtom(buffer, Symbol("true"))
     case false =>
-      writeAtom(buffer, 'false)
+      writeAtom(buffer, Symbol("false"))
     case s : Symbol =>
       writeAtom(buffer, s)
     case Reference(node, id, creation) => //we only emit new references
@@ -147,21 +148,21 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
       writeProduct(buffer, p)
   }
 
-  def writeBinary(buffer : ChannelBuffer, b : ByteBuffer) {
+  def writeBinary(buffer : ChannelBuffer, b : ByteBuffer): Unit = {
     val length = b.remaining
     buffer.writeByte(109)
     buffer.writeInt(length)
     buffer.writeBytes(b)
   }
 
-  def writeBinary(buffer : ChannelBuffer, a : Array[Byte]) {
+  def writeBinary(buffer : ChannelBuffer, a : Array[Byte]): Unit = {
     val length = a.length
     buffer.writeByte(109)
     buffer.writeInt(length)
     buffer.writeBytes(a)
   }
 
-  def writeBinary(buffer : ChannelBuffer, b : ByteBuffer, i : Int) {
+  def writeBinary(buffer : ChannelBuffer, b : ByteBuffer, i : Int): Unit = {
     val length = b.remaining
     buffer.writeByte(77)
     buffer.writeInt(length)
@@ -169,7 +170,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     buffer.writeBytes(b)
   }
 
-  def writeLong(buffer : ChannelBuffer, l : Long) {
+  def writeLong(buffer : ChannelBuffer, l : Long): Unit = {
     val sign = if (l < 0) 1 else 0
     val bytes = ByteBuffer.allocate(8)
     bytes.order(ByteOrder.LITTLE_ENDIAN)
@@ -181,7 +182,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     buffer.writeBytes(bytes)
   }
 
-  def writeBigInt(buffer : ChannelBuffer, big : BigInteger) {
+  def writeBigInt(buffer : ChannelBuffer, big : BigInteger): Unit = {
     val bytes = big.toByteArray
     val sign = if (big.signum < 0) 1 else 0
     val length = bytes.length
@@ -198,7 +199,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     }
   }
 
-  def writeList(buffer : ChannelBuffer, list : List[Any], tail : Any) {
+  def writeList(buffer : ChannelBuffer, list : List[Any], tail : Any): Unit = {
     buffer.writeByte(108)
     buffer.writeInt(list.size)
     for (element <- list) {
@@ -207,7 +208,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     encodeObject(buffer, tail)
   }
 
-  def writeJList(buffer : ChannelBuffer, list : JList[Any], tail : Any) {
+  def writeJList(buffer : ChannelBuffer, list : JList[Any], tail : Any): Unit = {
     buffer.writeByte(108)
     buffer.writeInt(list.size)
     val i = list.iterator()
@@ -217,7 +218,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     encodeObject(buffer, tail)
   }
 
-  def writeAtom(buffer : ChannelBuffer, s : Symbol) {
+  def writeAtom(buffer : ChannelBuffer, s : Symbol): Unit = {
     val bytes = s.name.getBytes
     if (bytes.length < 256) {
       buffer.writeByte(115)
@@ -229,21 +230,21 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     buffer.writeBytes(bytes)
   }
 
-  def writeSmallInteger(buffer : ChannelBuffer, i : Int) {
+  def writeSmallInteger(buffer : ChannelBuffer, i : Int): Unit = {
     buffer.writeByte(97)
     buffer.writeByte(i)
   }
 
-  def writeInteger(buffer : ChannelBuffer, i : Int) {
+  def writeInteger(buffer : ChannelBuffer, i : Int): Unit = {
     buffer.writeByte(98)
     buffer.writeInt(i)
   }
 
-  def writeFloat(buffer : ChannelBuffer, d : Double) {
+  def writeFloat(buffer : ChannelBuffer, d : Double): Unit = {
     if (d.isNaN) {
-      writeAtom(buffer, 'nan)
+      writeAtom(buffer, Symbol("nan"))
     } else if (d.isPosInfinity) {
-      writeAtom(buffer, 'infinity)
+      writeAtom(buffer, Symbol("infinity"))
     } else if (d.isNegInfinity) {
       writeAtom(buffer, Symbol("-infinity"))
     } else {
@@ -252,7 +253,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     }
   }
 
-  def writeStringFloat(buffer : ChannelBuffer, d : Double) {
+  def writeStringFloat(buffer : ChannelBuffer, d : Double): Unit = {
     val formatter = new Formatter
     formatter.format("%.20e", d.asInstanceOf[AnyRef])
     val str = formatter.toString.getBytes
@@ -260,7 +261,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     buffer.writeBytes(str)
   }
 
-  def writeProduct(buffer : ChannelBuffer, p : Product) {
+  def writeProduct(buffer : ChannelBuffer, p : Product): Unit = {
     val name = p.productPrefix
     if (name.startsWith("Tuple")) {
       writeTuple(buffer, None, p)
@@ -269,7 +270,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     }
   }
 
-  def writeTuple(buffer : ChannelBuffer, tag : Option[String], p : Product) {
+  def writeTuple(buffer : ChannelBuffer, tag : Option[String], p : Product): Unit = {
     val length = tag.size + p.productArity
     buffer.writeByte(104)
     buffer.writeByte(length)
@@ -281,7 +282,7 @@ class ScalaTermEncoder(peer: Symbol, encoder: TypeEncoder = NoneTypeEncoder) ext
     }
   }
 
-  def writeBigTuple(buffer : ChannelBuffer, tuple : BigTuple) {
+  def writeBigTuple(buffer : ChannelBuffer, tuple : BigTuple): Unit = {
     val length = tuple.productArity
     if (length < 255) {
       buffer.writeByte(104)

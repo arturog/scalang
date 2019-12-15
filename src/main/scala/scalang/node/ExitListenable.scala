@@ -20,11 +20,11 @@ import scalang._
 trait ExitListenable {
   @volatile var exitListeners : List[ExitListener] = Nil
 
-  def addExitListener(listener : ExitListener) {
+  def addExitListener(listener : ExitListener): Unit = {
     exitListeners = listener :: exitListeners
   }
 
-  def notifyExit(from : Pid, reason : Any) {
+  def notifyExit(from : Pid, reason : Any): Unit = {
     for (l <- exitListeners) {
       l.handleExit(from, reason)
     }

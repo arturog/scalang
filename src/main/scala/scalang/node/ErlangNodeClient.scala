@@ -45,7 +45,7 @@ class ErlangNodeClient(
       val pipeline = Channels.pipeline
 
       val handshakeDecoder = new HandshakeDecoder
-      handshakeDecoder.mode = 'challenge //first message on the client side is challenge, not name
+      handshakeDecoder.mode = Symbol("challenge") //first message on the client side is challenge, not name
       pipeline.addLast("executionHandler", node.executionHandler)
       pipeline.addLast("handshakeFramer", new LengthFieldBasedFrameDecoder(Short.MaxValue, 0, 2, 0, 2))
       pipeline.addLast("handshakeDecoder", handshakeDecoder)
@@ -64,7 +64,7 @@ class ErlangNodeClient(
   val future = bootstrap.connect(new InetSocketAddress(host, port))
   val channel = future.getChannel
   future.addListener(new ChannelFutureListener {
-    def operationComplete(f : ChannelFuture) {
+    def operationComplete(f : ChannelFuture): Unit = {
       if (f.isSuccess) {
         for (c <- control) {
           channel.write(c)

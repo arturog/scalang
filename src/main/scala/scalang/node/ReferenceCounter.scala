@@ -26,7 +26,7 @@ class ReferenceCounter(name : Symbol, creation : Int) {
   @volatile var refid = Array(0,0,0)
   val lock = new ReentrantLock
 
-  protected def increment {
+  protected def increment: Unit = {
     val newRefid = Arrays.copyOf(refid, 3)
     newRefid(0) += 1
     if (newRefid(0) > 0x3ffff) {

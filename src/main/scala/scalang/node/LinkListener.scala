@@ -18,7 +18,7 @@ package scalang.node
 import scalang._
 
 trait LinkListener {
-  def deliverLink(link : Link)
+  def deliverLink(link : Link): Unit
 
-  def break(link : Link, reason : Any)
+  def break(link : Link, reason : Any): Unit
 }

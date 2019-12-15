@@ -16,7 +16,7 @@ class BatchPoolExecutor(path : String,
     InstrumentedThreadPoolExecutor(path, name, coreSize, maxSize, keepAlive, unit, queue, factory) with
     BatchExecutor {
 
-  override def execute(reader : EventReader) {
+  override def execute(reader : EventReader): Unit = {
 
     // build a job which will run available work sequentially in a separate thread
 
@@ -29,7 +29,7 @@ class BatchPoolExecutor(path : String,
 
     val job =
       new Runnable {
-        def run() {
+        def run(): Unit = {
           val ti = tasks.iterator()
           while(ti.hasNext) {
             ti.next().run()

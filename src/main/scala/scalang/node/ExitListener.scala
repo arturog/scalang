@@ -23,5 +23,5 @@ import scalang._
 */
 
 trait ExitListener {
-  def handleExit(from : Pid, reason : Any)
+  def handleExit(from : Pid, reason : Any): Unit
 }

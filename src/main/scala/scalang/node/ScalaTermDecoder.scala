@@ -64,7 +64,7 @@ object ScalaTermDecoder {
 
 class ScalaTermDecoder(peer : Symbol, factory : TypeFactory, decoder : TypeDecoder = NoneTypeDecoder) extends OneToOneDecoder with InstrumentedBuilder {
   override val metricRegistry = new MetricRegistry()
-  val decodeTimer = metrics.timer("decoding", peer.name)
+  val decodeTimer = metrics.timer(s"decoding.${peer.name}")
 
   def decode(ctx : ChannelHandlerContext, channel : Channel, obj : Any) : Object = obj match {
     case buffer : ChannelBuffer =>

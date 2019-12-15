@@ -32,41 +32,41 @@ import java.security.{SecureRandom,MessageDigest}
 
 class ServerHandshakeHandler(name : Symbol, cookie : String, posthandshake : (Symbol,ChannelPipeline) => Unit) extends HandshakeHandler(posthandshake) {
   states(
-    state('disconnected, {
-      case ConnectedMessage => 'connected
+    state(Symbol("disconnected"), {
+      case ConnectedMessage => Symbol("connected")
     }),
 
-    state('connected, {
+    state(Symbol("connected"), {
       case msg : NameMessage =>
         receiveName(msg)
         sendStatus
         sendChallenge
-        'challenge_sent
+        Symbol("challenge_sent")
     }),
 
-    state('challenge_sent, {
+    state(Symbol("challenge_sent"), {
       case msg : ChallengeReplyMessage =>
         verifyChallenge(msg)
         sendChallengeAck(msg)
         drainQueue
         handshakeSucceeded
-        'verified
+        Symbol("verified")
     }),
 
-    state('verified, { case _ => 'verified}))
+    state(Symbol("verified"), { case _ => Symbol("verified")}))
 
   //state machine callbacks
-  protected def receiveName(msg : NameMessage) {
+  protected def receiveName(msg : NameMessage): Unit = {
     peer = Symbol(msg.name)
   }
 
-  protected def sendStatus {
+  protected def sendStatus: Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     ctx.sendDownstream(new DownstreamMessageEvent(channel,future,StatusMessage("ok"),null))
   }
 
-  protected def sendChallenge {
+  protected def sendChallenge: Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     challenge = random.nextInt
@@ -74,14 +74,14 @@ class ServerHandshakeHandler(name : Symbol, cookie : String, posthandshake : (Sy
     ctx.sendDownstream(new DownstreamMessageEvent(channel,future,msg,null))
   }
 
-  protected def verifyChallenge(msg : ChallengeReplyMessage) {
+  protected def verifyChallenge(msg : ChallengeReplyMessage): Unit = {
     val ourDigest = digest(challenge, cookie)
     if (!digestEquals(ourDigest, msg.digest)) {
       throw new ErlangAuthException("Peer authentication error.")
     }
   }
 
-  protected def sendChallengeAck(msg : ChallengeReplyMessage) {
+  protected def sendChallengeAck(msg : ChallengeReplyMessage): Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     val md5 = digest(msg.challenge, cookie)

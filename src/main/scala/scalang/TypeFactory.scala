@@ -15,6 +15,7 @@
 //
 package scalang
 
+import scala.reflect.ClassTag
 import node._
 import org.jboss.netty.buffer.ChannelBuffer
 
@@ -25,7 +26,7 @@ trait TypeFactory {
 trait TypeEncoder {
   def unapply(obj : Any) : Option[Any]
   
-  def encode(obj : Any, buffer : ChannelBuffer)
+  def encode(obj : Any, buffer : ChannelBuffer): Unit
 }
 
 trait TypeDecoder {
@@ -51,7 +52,7 @@ class TermReader(val buffer : ChannelBuffer, decoder : ScalaTermDecoder) {
     decoder.readTerm(buffer)
   }
 
-  def readAs[A] : A = {
+  def readAs[A: ClassTag] : A = {
     readTerm.asInstanceOf[A]
   }
 }

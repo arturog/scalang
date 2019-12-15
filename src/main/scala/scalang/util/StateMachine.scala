@@ -13,7 +13,7 @@ trait StateMachine {
   protected var stateList : List[State] = null
   @volatile protected var currentState = start
 
-  def event(evnt : Any) {
+  def event(evnt : Any): Unit = {
     mutex.synchronized {
       if (currentState == null) {
         currentState = start
@@ -25,7 +25,7 @@ trait StateMachine {
     }
   }
 
-  protected def states(states : State*) {
+  protected def states(states : State*): Unit = {
     stateList = states.toList
   }
 

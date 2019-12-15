@@ -61,7 +61,7 @@ class Epmd(val host : String, val port : Int) {
     throw connectFuture.getCause
   }
 
-  def close {
+  def close: Unit = {
     channel.close
   }
 

@@ -24,7 +24,7 @@ class ServiceLauncher[A <: Product, T <: Process](clazz : Class[T], ctx : Servic
   val referenceCounter = ctx.referenceCounter
   var process : Process = null
 
-  def init {
+  def init: Unit = {
     val constructor = clazz.getConstructor(classOf[ServiceContext[_]])
     ctx.adapter = this
     process = constructor.newInstance(ctx)

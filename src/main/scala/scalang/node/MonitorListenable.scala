@@ -20,17 +20,17 @@ import scalang._
 trait MonitorListenable {
   @volatile var monitorListeners : List[MonitorListener] = Nil
 
-  def addMonitorListener(listener : MonitorListener) {
+  def addMonitorListener(listener : MonitorListener): Unit = {
     monitorListeners = listener :: monitorListeners
   }
 
-  def notifyMonitorExit(monitor : Monitor, reason : Any) {
+  def notifyMonitorExit(monitor : Monitor, reason : Any): Unit = {
     for (listener <- monitorListeners) {
       listener.monitorExit(monitor, reason)
     }
   }
 
-  def notifyDeliverMonitor(monitor : Monitor) {
+  def notifyDeliverMonitor(monitor : Monitor): Unit = {
     for (listener <- monitorListeners) {
       listener.deliverMonitor(monitor)
     }

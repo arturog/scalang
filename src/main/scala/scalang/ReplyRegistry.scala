@@ -36,11 +36,11 @@ trait ReplyRegistry {
     case _ => false
   }
   
-  def removeReplyQueue(pid : Pid, ref : Reference) {
+  def removeReplyQueue(pid : Pid, ref : Reference): Unit = {
     replyWaiters.remove((pid, ref))
   }
   
-  def registerReplyQueue(pid : Pid, tag : Reference, queue : BlockingQueue[Any]) {
+  def registerReplyQueue(pid : Pid, tag : Reference, queue : BlockingQueue[Any]): Unit = {
     replyWaiters.put((pid,tag), queue)
   }
 }

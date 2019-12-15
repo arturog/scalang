@@ -30,7 +30,7 @@ abstract class Service[A <: Product](ctx : ServiceContext[A]) extends Process(ct
   /**
    * Init callback for any context that the service might need.
    */
-/*  def init(args : Any) {
+/*  def init(args : Any): Unit = {
     // noop
   }
 */
@@ -38,31 +38,31 @@ abstract class Service[A <: Product](ctx : ServiceContext[A]) extends Process(ct
    * Handle a call style of message which will expect a response.
    */
   def handleCall(tag : (Pid,Reference), request : Any) : Any = {
-    throw new Exception(getClass + " did not define a call handler.")
+    throw new Exception(getClass.toString + " did not define a call handler.")
   }
 
   /**
    * Handle a cast style of message which will receive no response.
    */
-  def handleCast(request : Any) {
-    throw new Exception(getClass + " did not define a cast handler.")
+  def handleCast(request : Any): Unit = {
+    throw new Exception(getClass.toString + " did not define a cast handler.")
   }
 
   /**
    * Handle any messages that do not fit the call or cast pattern.
    */
-  def handleInfo(request : Any) {
-    throw new Exception(getClass + " did not define an info handler.")
+  def handleInfo(request : Any): Unit = {
+    throw new Exception(getClass.toString + " did not define an info handler.")
   }
 
   override def onMessage(msg : Any) = msg match {
-    case ('ping, from : Pid, ref : Reference) =>
-      from ! ('pong, ref)
+    case (Symbol("ping"), from : Pid, ref : Reference) =>
+      from ! (Symbol("pong"), ref)
     case (Symbol("$gen_call"), (from : Pid, ref : Reference), request : Any) =>
       handleCall((from, ref), request) match {
-        case ('reply, reply) =>
+        case (Symbol("reply"), reply) =>
           from ! (ref, reply)
-        case 'noreply =>
+        case Symbol("noreply") =>
           ()
         case reply =>
           from ! (ref, reply)

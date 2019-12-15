@@ -21,12 +21,12 @@ import scalang._
 import util._
 import java.util.ArrayDeque
 import scala.math._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import java.security.{SecureRandom,MessageDigest}
 
 
 abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit) extends SimpleChannelHandler with StateMachine with Logging {
-  override val start = 'disconnected
+  override val start = Symbol("disconnected")
   @volatile var ctx : ChannelHandlerContext = null
   @volatile var peer : Symbol = null
   @volatile var challenge : Int = 0
@@ -35,10 +35,10 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
   val messages = new ArrayDeque[MessageEvent]
   val random = SecureRandom.getInstance("SHA1PRNG")
 
-  def isVerified = currentState == 'verified
+  def isVerified = currentState == Symbol("verified")
 
   //handler callbacks
-  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def messageReceived(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     this.ctx = ctx
     val msg = e.getMessage
     if (isVerified) {
@@ -49,26 +49,26 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
     event(msg)
   }
 
-  override def channelConnected(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelConnected(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     this.ctx = ctx
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     event(ConnectedMessage)
   }
 
-  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent) {
+  override def channelClosed(ctx : ChannelHandlerContext, e : ChannelStateEvent): Unit = {
     this.ctx = ctx
     log.error("Channel closed during handshake")
     handshakeFailed
   }
 
-  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent) {
+  override def exceptionCaught(ctx : ChannelHandlerContext, e : ExceptionEvent): Unit = {
     this.ctx = ctx
     log.error("Exception caught during erlang handshake: ", e.getCause)
     handshakeFailed
   }
 
-  override def writeRequested(ctx : ChannelHandlerContext, e : MessageEvent) {
+  override def writeRequested(ctx : ChannelHandlerContext, e : MessageEvent): Unit = {
     this.ctx = ctx
     if (isVerified) {
       super.writeRequested(ctx,e)
@@ -106,7 +106,7 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
     equals
   }
 
-  protected def drainQueue {
+  protected def drainQueue: Unit = {
     val p = ctx.getPipeline
     val keys = p.toMap.keySet
     for (name <- List("handshakeFramer", "handshakeDecoder", "handshakeEncoder", "handshakeHandler"); if keys.contains(name)) {
@@ -120,11 +120,11 @@ abstract class HandshakeHandler(posthandshake : (Symbol,ChannelPipeline) => Unit
     messages.clear
   }
 
-  protected def handshakeSucceeded {
+  protected def handshakeSucceeded: Unit = {
     ctx.sendUpstream(new UpstreamMessageEvent(ctx.getChannel, HandshakeSucceeded(peer, ctx.getChannel), null))
   }
 
-  protected def handshakeFailed {
+  protected def handshakeFailed: Unit = {
     ctx.getChannel.close
     ctx.sendUpstream(new UpstreamMessageEvent(ctx.getChannel, HandshakeFailed(peer), null))
   }

@@ -32,58 +32,58 @@ import java.security.{SecureRandom,MessageDigest}
 
 class ClientHandshakeHandler(name : Symbol, cookie : String, posthandshake : (Symbol,ChannelPipeline) => Unit) extends HandshakeHandler(posthandshake) {
   states(
-    state('disconnected, {
+    state(Symbol("disconnected"), {
       case ConnectedMessage =>
         sendName
-        'connected
+        Symbol("connected")
     }),
 
-    state('connected, {
+    state(Symbol("connected"), {
       case StatusMessage("ok") =>
-        'status_ok
+        Symbol("status_ok")
       case StatusMessage("ok_simultaneous") =>
-        'status_ok
+        Symbol("status_ok")
       case StatusMessage("alive") => //means the other node sees another conn from us. reconnecting too quick.
         sendStatus("true")
-        'status_ok
+        Symbol("status_ok")
       case StatusMessage(status) =>
         throw new ErlangAuthException("Bad status message: " + status)
     }),
 
-    state('status_ok, {
+    state(Symbol("status_ok"), {
       case ChallengeMessage(version, flags, c, name) =>
         peer = Symbol(name)
         sendChallengeReply(c)
-        'reply_sent
+        Symbol("reply_sent")
     }),
 
-    state('reply_sent, {
+    state(Symbol("reply_sent"), {
       case ChallengeAckMessage(digest) =>
         verifyChallengeAck(digest)
         drainQueue
         handshakeSucceeded
-        'verified
+        Symbol("verified")
     }),
 
-    state('verified, {
-      case _ => 'verified
+    state(Symbol("verified"), {
+      case _ => Symbol("verified")
     }))
 
-  protected def sendStatus(st : String) {
+  protected def sendStatus(st : String): Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     val msg = StatusMessage(st)
     ctx.sendDownstream(new DownstreamMessageEvent(channel,future,msg,null))
   }
 
-  protected def sendName {
+  protected def sendName: Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     val msg = NameMessage(5, DistributionFlags.default, name.name)
     ctx.sendDownstream(new DownstreamMessageEvent(channel,future,msg,null))
   }
 
-  protected def sendChallengeReply(c : Int) {
+  protected def sendChallengeReply(c : Int): Unit = {
     val channel = ctx.getChannel
     val future = Channels.future(channel)
     this.peerChallenge = c
@@ -93,7 +93,7 @@ class ClientHandshakeHandler(name : Symbol, cookie : String, posthandshake : (Sy
     ctx.sendDownstream(new DownstreamMessageEvent(channel,future,msg,null))
   }
 
-  protected def verifyChallengeAck(peerDigest : Array[Byte]) {
+  protected def verifyChallengeAck(peerDigest : Array[Byte]): Unit = {
     val ourDigest = digest(challenge, cookie)
     if (!digestEquals(ourDigest, peerDigest)) {
       throw new ErlangAuthException("Peer authentication error.")

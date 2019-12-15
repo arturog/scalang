@@ -26,8 +26,8 @@ trait Mailbox {
   def send(pid : Pid, msg : Any) : Any
   def send(name : Symbol, msg : Any) : Any
   def send(dest : (Symbol, Symbol), from : Pid, msg : Any) : Any
-  def exit(reason : Any)
-  def link(to : Pid)
+  def exit(reason : Any): Unit
+  def link(to : Pid): Unit
 }
 
 class MailboxProcess(ctx : ProcessContext) extends ProcessAdapter with Mailbox {
@@ -36,7 +36,7 @@ class MailboxProcess(ctx : ProcessContext) extends ProcessAdapter with Mailbox {
   val referenceCounter = ctx.referenceCounter
   
   val queue = new LinkedTransferQueue[Any]
-  def cleanup {}
+  def cleanup: Unit = {}
   val adapter = ctx.adapter
 
   def receive : Any = {
@@ -47,16 +47,16 @@ class MailboxProcess(ctx : ProcessContext) extends ProcessAdapter with Mailbox {
     Option(queue.poll(timeout, TimeUnit.MILLISECONDS))
   }
   
-  override def handleMessage(msg : Any) {
+  override def handleMessage(msg : Any): Unit = {
     queue.offer(msg)
   }
 
-  override def handleExit(from : Pid, reason : Any) {
+  override def handleExit(from : Pid, reason : Any): Unit = {
     exit(reason)
   }
   
-  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any) {
-    queue.offer(('DOWN, ref, 'process, monitored, reason))
+  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit = {
+    queue.offer((Symbol("DOWN"), ref, Symbol("process"), monitored, reason))
   }
   
   def send(to : Pid, msg : Any) = notifySend(to, msg)

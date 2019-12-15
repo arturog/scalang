@@ -20,17 +20,17 @@ import scalang._
 trait LinkListenable {
   @volatile var linkListeners : List[LinkListener] = Nil
 
-  def addLinkListener(listener : LinkListener) {
+  def addLinkListener(listener : LinkListener): Unit = {
     linkListeners = listener :: linkListeners
   }
 
-  def notifyBreak(link : Link, reason : Any) {
+  def notifyBreak(link : Link, reason : Any): Unit = {
     for (listener <- linkListeners) {
       listener.break(link, reason)
     }
   }
 
-  def notifyDeliverLink(link : Link) {
+  def notifyDeliverLink(link : Link): Unit = {
     for (listener <- linkListeners) {
       listener.deliverLink(link)
     }

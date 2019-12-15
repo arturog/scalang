@@ -25,7 +25,7 @@ class HandshakeDecoder extends OneToOneDecoder {
   //we need to have a dirty fucking mode context
   //because name messages and challenge replies have
   //the same identifier
-  @volatile var mode = 'name
+  @volatile var mode = Symbol("name")
 
   def decode(ctx : ChannelHandlerContext, channel : Channel, obj : Any) : Object = {
     //dispatch on first byte
@@ -35,15 +35,15 @@ class HandshakeDecoder extends OneToOneDecoder {
     }
     buffer.markReaderIndex
     (mode, buffer.readByte) match {
-      case ('name, 110) => //name message
+      case (Symbol("name"), 110) => //name message
         val version = buffer.readShort
         val flags = buffer.readInt
         val nameLength = buffer.readableBytes
         val bytes = new Array[Byte](nameLength)
         buffer.readBytes(bytes)
-        mode = 'challenge
+        mode = Symbol("challenge")
         NameMessage(version, flags, new String(bytes))
-      case ('challenge, 110) => //challenge message
+      case (Symbol("challenge"), 110) => //challenge message
         val version = buffer.readShort
         val flags = buffer.readInt
         val challenge = buffer.readInt

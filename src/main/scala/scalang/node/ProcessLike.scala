@@ -29,25 +29,25 @@ trait ProcessLike extends InstrumentedBuilder with Logging {
   def send(name : Symbol, msg : Any) = adapter.notifySend(name,msg)
   def send(dest : (Symbol,Symbol), from : Pid, msg : Any) = adapter.notifySend(dest,from,msg)
   
-  def handleMessage(msg : Any)
+  def handleMessage(msg : Any): Unit
   
-  def handleExit(from : Pid, reason : Any) {
+  def handleExit(from : Pid, reason : Any): Unit = {
     exit(reason)
   }
 
-  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any)
+  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit
   
-  def exit(reason : Any) {
+  def exit(reason : Any): Unit = {
     adapter.exit(reason)
   }
   
   def makeRef = adapter.makeRef
 
-  def unlink(to : Pid) {
+  def unlink(to : Pid): Unit = {
     adapter.unlink(to)
   }
   
-  def link(to : Pid) {
+  def link(to : Pid): Unit = {
     adapter.link(to)
   }
 
@@ -55,7 +55,7 @@ trait ProcessLike extends InstrumentedBuilder with Logging {
     adapter.monitor(monitored)
   }
   
-  def demonitor(ref : Reference) {
+  def demonitor(ref : Reference): Unit = {
     adapter.demonitor(ref)
   }
 }

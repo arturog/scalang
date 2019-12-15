@@ -38,52 +38,52 @@ abstract class Process(ctx : ProcessContext) extends ProcessLike with Logging {
   def sendAfter(name : Symbol, msg : Any, delay : Long) = adapter.sendAfter(name, msg, delay)
   def sendAfter(dest : (Symbol,Symbol), msg : Any, delay : Long) = adapter.sendAfter(dest, msg, delay)
 
-  override def handleMessage(msg : Any) {
+  override def handleMessage(msg : Any): Unit = {
     onMessage(msg)
   }
 
-  override def handleExit(from : Pid, msg : Any) {
+  override def handleExit(from : Pid, msg : Any): Unit = {
     trapExit(from, msg)
   }
 
   /**
    * Subclasses should override this method with their own message handlers
    */
-  def onMessage(msg : Any)
+  def onMessage(msg : Any): Unit
 
   /**
    * Subclasses wishing to trap exits should override this method.
    */
-  def trapExit(from : Pid, msg : Any) {
+  def trapExit(from : Pid, msg : Any): Unit = {
     exit(msg)
   }
 
-  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any) {
+  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit = {
     trapMonitorExit(monitored, ref, reason)
   }
 
   /**
    * Subclasses wishing to trap monitor exits should override this method.
    */
-  def trapMonitorExit(monitored : Any, ref : Reference, reason : Any) {
+  def trapMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit = {
   }
 
 }
 
 class PidSend(to : Pid, proc : Process) {
-  def !(msg : Any) {
+  def !(msg : Any): Unit = {
     proc.adapter.notifySend(to,msg)
   }
 }
 
 class SymSend(to : Symbol, proc : Process) {
-  def !(msg : Any) {
+  def !(msg : Any): Unit = {
     proc.adapter.notifySend(to, msg)
   }
 }
 
 class DestSend(to : (Symbol,Symbol), from : Pid, proc : Process) {
-  def !(msg : Any) {
+  def !(msg : Any): Unit = {
     proc.adapter.notifySend(to, from, msg)
   }
 }

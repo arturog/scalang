@@ -30,7 +30,7 @@ class FunProcess(fun : Mailbox => Unit, ctx : ProcessContext) extends ProcessAda
     def self = parentPid
     def referenceCounter = parentRef
 
-    def handleMessage(msg : Any) {
+    def handleMessage(msg : Any): Unit = {
       queue.offer(msg)
     }
 
@@ -54,25 +54,25 @@ class FunProcess(fun : Mailbox => Unit, ctx : ProcessContext) extends ProcessAda
   }
 
 
-  def start {
+  def start: Unit = {
     fiber.execute(new Runnable {
-      override def run {
+      override def run: Unit = {
         fun(mbox)
-        exit('normal)
+        exit(Symbol("normal"))
       }
     })
   }
 
-  override def handleMessage(msg : Any) {
+  override def handleMessage(msg : Any): Unit = {
     queue.offer(msg)
   }
 
-  override def handleExit(from : Pid, reason : Any) {
-    queue.offer(('EXIT, from, reason))
+  override def handleExit(from : Pid, reason : Any): Unit = {
+    queue.offer((Symbol("EXIT"), from, reason))
   }
   
-  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any) {
-    queue.offer(('DOWN, ref, 'process, monitored, reason))
+  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit = {
+    queue.offer((Symbol("DOWN"), ref, Symbol("process"), monitored, reason))
   }
   
   def cleanup = fiber.dispose

@@ -20,7 +20,7 @@ import scalang._
 trait SendListenable {
   @volatile var sendListeners : List[SendListener] = Nil
 
-  def addSendListener(listener : SendListener) {
+  def addSendListener(listener : SendListener): Unit = {
     sendListeners = listener :: sendListeners
   }
 

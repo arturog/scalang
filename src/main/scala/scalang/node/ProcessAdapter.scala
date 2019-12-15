@@ -23,20 +23,20 @@ import org.jetlang.core._
 import java.util.concurrent.TimeUnit
 import org.cliffc.high_scale_lib.NonBlockingHashSet
 import org.cliffc.high_scale_lib.NonBlockingHashMap
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import nl.grons.metrics4.scala.InstrumentedBuilder
 
 abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   val self = ctx.pid
   val fiber = ctx.fiber
-  val messageRate = metrics.meter("messages", instrumentedName)
-  val executionTimer = metrics.timer("execution", instrumentedName)
+  val messageRate = metrics.meter(s"messages.$instrumentedName")
+  val executionTimer = metrics.timer(s"execution.$instrumentedName")
   def process : ProcessLike
   
   val msgChannel = new MemoryChannel[Any]
   msgChannel.subscribe(fiber, new Callback[Any] {
-    def onMessage(msg : Any) {
+    def onMessage(msg : Any): Unit = {
       executionTimer.time {
         try {
           process.handleMessage(msg)
@@ -51,7 +51,7 @@ abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   
   val exitChannel = new MemoryChannel[(Pid,Any)]
   exitChannel.subscribe(fiber, new Callback[(Pid,Any)] {
-    def onMessage(msg : (Pid,Any)) {
+    def onMessage(msg : (Pid,Any)): Unit = {
       try {
         process.handleExit(msg._1, msg._2)
       } catch {
@@ -64,7 +64,7 @@ abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
   
   val monitorChannel = new MemoryChannel[(Any,Reference,Any)]
   monitorChannel.subscribe(fiber, new Callback[(Any,Reference,Any)] {
-    def onMessage(msg : (Any,Reference,Any)) {
+    def onMessage(msg : (Any,Reference,Any)): Unit = {
       try {
         process.handleMonitorExit(msg._1, msg._2, msg._3)
       } catch {
@@ -75,20 +75,20 @@ abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
     }
   })
   
-  override def handleMessage(msg : Any) {
+  override def handleMessage(msg : Any): Unit = {
     messageRate.mark
     msgChannel.publish(msg)
   }
 
-  override def handleExit(from : Pid, msg : Any) {
+  override def handleExit(from : Pid, msg : Any): Unit = {
     exitChannel.publish((from,msg))
   }
 
-  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any) {
+  override def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit = {
     monitorChannel.publish((monitored,ref,reason))
   }
   
-  def cleanup {
+  def cleanup: Unit = {
     fiber.dispose
     metricRegistry.remove("messages")
     metricRegistry.remove("execution")
@@ -98,23 +98,23 @@ abstract class ProcessHolder(ctx : ProcessContext) extends ProcessAdapter {
 trait ProcessAdapter extends ExitListenable with SendListenable with LinkListenable with MonitorListenable with InstrumentedBuilder with Logging {
   override val metricRegistry = new MetricRegistry()
   
-  var state = 'alive
+  var state = Symbol("alive")
   def self : Pid
   def fiber : Fiber
   def referenceCounter : ReferenceCounter
   val links = new NonBlockingHashSet[Link]
   val monitors = new NonBlockingHashMap[Reference, Monitor]  
   def instrumentedName = self.toErlangString
-  def cleanup
+  def cleanup: Unit
   
-  def handleMessage(msg : Any)
-  def handleExit(from : Pid, msg : Any)
-  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any)
+  def handleMessage(msg : Any): Unit
+  def handleExit(from : Pid, msg : Any): Unit
+  def handleMonitorExit(monitored : Any, ref : Reference, reason : Any): Unit
   
-  def exit(reason : Any) {
+  def exit(reason : Any): Unit = {
     synchronized {
-      if (state != 'alive) return
-      state = 'dead
+      if (state != Symbol("alive")) return
+      state = Symbol("dead")
     }
 
     // Exit listeners first, so that process is removed from table.
@@ -130,11 +130,11 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
     cleanup
   }
   
-  def unlink(to : Pid) {
+  def unlink(to : Pid): Unit = {
     links.remove(Link(self, to))
   }
   
-  def link(to : Pid) {
+  def link(to : Pid): Unit = {
     val l = registerLink(to)
     for (listener <- linkListeners) {
       listener.deliverLink(l)
@@ -147,8 +147,8 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
       l.addLinkListener(listener)
     }
     synchronized {
-      if (state != 'alive)
-        l.break('noproc)
+      if (state != Symbol("alive"))
+        l.break(Symbol("noproc"))
       else
         links.add(l)
     }
@@ -163,7 +163,7 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
     m.ref
   }
   
-  def demonitor(ref : Reference) {
+  def demonitor(ref : Reference): Unit = {
     monitors.remove(ref)
   }
   
@@ -176,8 +176,8 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
       m.addMonitorListener(listener)
     }
     synchronized {
-      if (state != 'alive)
-        m.monitorExit('noproc)
+      if (state != Symbol("alive"))
+        m.monitorExit(Symbol("noproc"))
       else
         monitors.put(m.ref, m)
     }
@@ -186,48 +186,48 @@ trait ProcessAdapter extends ExitListenable with SendListenable with LinkListena
   
   def makeRef = referenceCounter.makeRef
   
-  def sendEvery(pid : Pid, msg : Any, delay : Long) {
+  def sendEvery(pid : Pid, msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
       def run = notifySend(pid,msg)
     }
     fiber.scheduleAtFixedRate(runnable, delay, delay, TimeUnit.MILLISECONDS)
   }
 
-  def sendEvery(name : Symbol, msg : Any, delay : Long) {
+  def sendEvery(name : Symbol, msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
       def run = notifySend(name,msg)
     }
     fiber.scheduleAtFixedRate(runnable, delay, delay, TimeUnit.MILLISECONDS)
   }
 
-  def sendEvery(name : (Symbol,Symbol), msg : Any, delay : Long) {
+  def sendEvery(name : (Symbol,Symbol), msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
       def run = notifySend(name,self,msg)
     }
     fiber.scheduleAtFixedRate(runnable, delay, delay, TimeUnit.MILLISECONDS)
   }
 
-  def sendAfter(pid : Pid, msg : Any, delay : Long) {
+  def sendAfter(pid : Pid, msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
-      def run {
+      def run: Unit = {
         notifySend(pid, msg)
       }
     }
     fiber.schedule(runnable, delay, TimeUnit.MILLISECONDS)
   }
 
-  def sendAfter(name : Symbol, msg : Any, delay : Long) {
+  def sendAfter(name : Symbol, msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
-      def run {
+      def run: Unit = {
         notifySend(name, msg)
       }
     }
     fiber.schedule(runnable, delay, TimeUnit.MILLISECONDS)
   }
 
-  def sendAfter(dest : (Symbol,Symbol), msg : Any, delay : Long) {
+  def sendAfter(dest : (Symbol,Symbol), msg : Any, delay : Long): Unit = {
     val runnable = new Runnable {
-      def run {
+      def run: Unit = {
         notifySend(dest, self, msg)
       }
     }

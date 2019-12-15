@@ -85,7 +85,7 @@ class DefaultThreadPoolFactory extends ThreadPoolFactory {
   def createBatchExecutor(name : String, reentrant : Boolean) : BatchExecutor = {
     if (reentrant) {
       val queue = new LinkedBlockingQueue[Runnable]
-      val pool = new BatchPoolExecutor("scalang", name, max_threads, max_threads, 60l, TimeUnit.SECONDS, queue, new NamedThreadFactory(name))
+      val pool = new BatchPoolExecutor("scalang", name, max_threads, max_threads, 60L, TimeUnit.SECONDS, queue, new NamedThreadFactory(name))
       pool
     } else {
       batchExecutor

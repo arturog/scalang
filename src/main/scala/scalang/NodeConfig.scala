@@ -32,7 +32,7 @@ object NoneTypeFactory extends TypeFactory {
 
 object NoneTypeEncoder extends TypeEncoder {
   def unapply(obj: Any) = { None }
-  def encode(obj: Any, buffer: ChannelBuffer) {}
+  def encode(obj: Any, buffer: ChannelBuffer): Unit = {}
 }
 
 object NoneTypeDecoder extends TypeDecoder {
