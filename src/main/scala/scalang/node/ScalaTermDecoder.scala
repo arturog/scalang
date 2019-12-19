@@ -19,6 +19,7 @@ import org.jboss.netty
 import netty.handler.codec.oneone._
 import netty.channel._
 import java.nio._
+import java.nio.charset.StandardCharsets.UTF_8
 import netty.buffer._
 import scala.annotation.tailrec
 import scalang._
@@ -29,36 +30,10 @@ import sun.misc.Unsafe
 import nl.grons.metrics4.scala.InstrumentedBuilder
 
 object ScalaTermDecoder {
-  private val field = classOf[Unsafe].getDeclaredField("theUnsafe")
-  field.setAccessible(true)
-  val unsafe = field.get(classOf[ScalaTermDecoder]).asInstanceOf[Unsafe]
-
-  val stringValueOffset = unsafe.objectFieldOffset(classOf[String].getDeclaredField("value"))
-  private[this] val stringUsesCount = classOf[String].getDeclaredFields.map{f => f.getName}.contains("count")
-  val stringCountOffset = {
-    if (stringUsesCount)
-      unsafe.objectFieldOffset(classOf[String].getDeclaredField("count"))
-    else
-      0
-  }
-
-  // Initializes a string by creating an empty String object, then populating it with our own
-  // backing char[] to prevent allocating / copying between byte[] or char[] twice.
   def fastString(buffer: ChannelBuffer, length: Int) : String = {
-    val destArray = new Array[Char](length)
-
-    var i = 0
-    while (i < length) {
-      destArray(i) = buffer.readByte().asInstanceOf[Char]
-      i+=1
-    }
-
-    val result = unsafe.allocateInstance(classOf[String]).asInstanceOf[String]
-    unsafe.putObject(result, stringValueOffset, destArray)
-    if (stringUsesCount) {
-      unsafe.putInt(result, stringCountOffset, length)
-    }
-    result
+    val destArray = new Array[Byte](length)
+    buffer.readBytes(destArray, 0, length)
+    new String(destArray, 0, length, UTF_8)
   }
 }
 
